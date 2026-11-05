@@ -1,5 +1,5 @@
-import { CatmullRomCurve3, PerspectiveCamera, Vector3 } from "three";
-import { detail, DETAIL_K } from "./layout";
+import { CatmullRomCurve3, type PerspectiveCamera, Vector3 } from "three";
+import { DETAIL_K, detail } from "./layout";
 
 export const FOV = 38;
 const TAN = Math.tan((FOV * Math.PI) / 360);
@@ -62,9 +62,24 @@ export function createCameraRig(camera: PerspectiveCamera) {
     camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
     camera.updateProjectionMatrix();
     const dists = STOPS.map((s) => Math.max(s.ry / (TAN * hf), s.rx / (TAN * wf * aspect)));
-    targets = new CatmullRomCurve3(STOPS.map((s) => s.target.clone()), false, "catmullrom", 0.5);
-    dirs = new CatmullRomCurve3(STOPS.map((s) => s.dir.clone().normalize()), false, "catmullrom", 0.5);
-    dist = new CatmullRomCurve3(dists.map((x) => new Vector3(Math.log(x), 0, 0)), false, "catmullrom", 0.5);
+    targets = new CatmullRomCurve3(
+      STOPS.map((s) => s.target.clone()),
+      false,
+      "catmullrom",
+      0.5,
+    );
+    dirs = new CatmullRomCurve3(
+      STOPS.map((s) => s.dir.clone().normalize()),
+      false,
+      "catmullrom",
+      0.5,
+    );
+    dist = new CatmullRomCurve3(
+      dists.map((x) => new Vector3(Math.log(x), 0, 0)),
+      false,
+      "catmullrom",
+      0.5,
+    );
   }
 
   /** stop: continuous stop index in [0, n-1] */

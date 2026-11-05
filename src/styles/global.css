@@ -178,7 +178,7 @@ html.scene-on #hud {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 10;
+  z-index: 0; /* above the canvas, below page content */
   pointer-events: none;
   background: var(--panel);
   border: 1px solid var(--border);
@@ -389,4 +389,38 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Scroll distance per chapter (spec §5.3), relative to viewport height */
+.chapter[data-chapter="0"] {
+  min-height: 150vh;
+  min-height: 150svh;
+}
+.chapter[data-chapter="1"] {
+  min-height: 200vh;
+  min-height: 200svh;
+}
+.chapter[data-chapter="2"] {
+  min-height: 200vh;
+  min-height: 200svh;
+}
+.chapter[data-chapter="3"] {
+  min-height: 250vh;
+  min-height: 250svh;
+}
+.chapter[data-chapter="4"] {
+  min-height: 350vh;
+  min-height: 350svh;
+}
+.chapter[data-chapter="5"] {
+  min-height: 250vh;
+  min-height: 250svh;
+}
+.chapter[data-chapter="6"] {
+  min-height: 200vh;
+  min-height: 200svh;
+}
+.chapter[data-chapter="7"] {
+  min-height: 150vh;
+  min-height: 150svh;
 }

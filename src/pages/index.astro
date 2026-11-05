@@ -143,7 +143,7 @@ const year = new Date().getFullYear();
       </div>
     </section>
 
-    <section id="publications" class="chapter wide" data-chapter="4" aria-labelledby="pubs-h">
+    <section id="publications" class="chapter" data-chapter="4" aria-labelledby="pubs-h">
       <div class="col reveal">
         <Panel title="Publications" headingId="pubs-h" meta={`${pubs.length} entries`}>
           <ChapterNote index={4} />
@@ -259,11 +259,5 @@ const year = new Date().getFullYear();
   .links.big .btn {
     min-height: 48px;
     padding: 0 18px;
-  }
-  /* Publications table needs room: wider column on desktop */
-  @media (min-width: 1025px) {
-    .chapter.wide > .col {
-      width: min(62%, 980px);
-    }
   }
 </style>

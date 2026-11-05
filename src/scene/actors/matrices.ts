@@ -8,12 +8,12 @@ import {
   ShaderMaterial,
 } from "three";
 import { CUBE } from "../layout";
+import { withCommon } from "../materials";
 import faceFrag from "../shaders/face.frag.glsl?raw";
 import lineFrag from "../shaders/line.frag.glsl?raw";
 import lineVert from "../shaders/line.vert.glsl?raw";
 import planeVert from "../shaders/plane.vert.glsl?raw";
 import { U } from "../state";
-import { withCommon } from "../materials";
 
 /** The matmul cube: A on the left face, B on top, C on the front face. */
 export function createMatrices() {
@@ -54,7 +54,11 @@ export function createMatrices() {
   const lg = new BufferGeometry();
   lg.setAttribute("position", new Float32BufferAttribute(pts, 3));
   const lm = new ShaderMaterial({
-    uniforms: { uColor: { value: [0.851, 0.541, 0.306] }, uAlpha: U.uCubeVis, uTime: U.uTime } as never,
+    uniforms: {
+      uColor: { value: [0.851, 0.541, 0.306] },
+      uAlpha: U.uCubeVis,
+      uTime: U.uTime,
+    } as never,
     vertexShader: lineVert,
     fragmentShader: withCommon(lineFrag),
   });

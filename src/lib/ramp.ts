@@ -9,5 +9,11 @@ export function ramp(t: number): string {
   const f = x - i;
   const a = hex(RAMP[i] as string);
   const b = hex(RAMP[i + 1] as string);
-  return `#${a.map((v, k) => Math.round(v + ((b[k] as number) - v) * f).toString(16).padStart(2, "0")).join("")}`;
+  return `#${a
+    .map((v, k) =>
+      Math.round(v + ((b[k] as number) - v) * f)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 }

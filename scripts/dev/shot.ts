@@ -6,10 +6,21 @@ const [out = "/tmp/shot.png", w = "1440", h = "900", tau = "0", base = "http://l
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/google-chrome",
   headless: true,
-  args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+  args: [
+    "--no-sandbox",
+    "--use-angle=swiftshader",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist",
+  ],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: +w, height: +h, deviceScaleFactor: 1, isMobile: +w < 640, hasTouch: +w < 640 });
+await page.setViewport({
+  width: +w,
+  height: +h,
+  deviceScaleFactor: 1,
+  isMobile: +w < 640,
+  hasTouch: +w < 640,
+});
 const seen = new Set<string>();
 page.on("console", (m) => {
   const t = m.text().slice(0, 1500);
@@ -22,7 +33,9 @@ const scroll = tau.startsWith("scroll:");
 await page.goto(scroll ? base : `${base}?tau=${tau}`, { waitUntil: "load" });
 if (scroll) await page.evaluate((y) => window.scrollTo(0, y), +tau.slice(7));
 await page
-  .waitForFunction(() => document.documentElement.classList.contains("scene-on"), { timeout: 20000 })
+  .waitForFunction(() => document.documentElement.classList.contains("scene-on"), {
+    timeout: 20000,
+  })
   .catch(() => console.log("scene never turned on"));
 await new Promise((r) => setTimeout(r, 1500));
 await page.screenshot({ path: out });

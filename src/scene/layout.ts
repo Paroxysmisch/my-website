@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { ctaPairs, GPU, pairsPerDie, selectedPair, SELECTED, tilesN } from "./kernel";
+import { ctaPairs, GPU, pairsPerDie, SELECTED, selectedPair, tilesN } from "./kernel";
 
 /** Iteration-space cube. C = front (+z), A = left (-x), B = top (+y); k runs along z. */
 export const CUBE = 6;
@@ -30,7 +30,9 @@ export function smPosition(i: number) {
   );
 }
 export const pairPosition = (p: number) =>
-  smPosition(2 * p).add(smPosition(2 * p + 1)).multiplyScalar(0.5);
+  smPosition(2 * p)
+    .add(smPosition(2 * p + 1))
+    .multiplyScalar(0.5);
 export const PAIR_POS = pairPosition(selectedPair);
 
 /** Detail ("inside the SM pair") group: local units, scaled to sit exactly on the chosen pair. */
@@ -55,6 +57,10 @@ export const LANES = { cy: -19.5, w: 42, h: 8 };
 
 export function slotCenter(i: number) {
   const a = Math.PI / 2 - (i * Math.PI) / 3;
-  return { x: RING.cx + Math.cos(a) * RING.r, y: RING.cy + Math.sin(a) * RING.r, rot: a - Math.PI / 2 };
+  return {
+    x: RING.cx + Math.cos(a) * RING.r,
+    y: RING.cy + Math.sin(a) * RING.r,
+    rot: a - Math.PI / 2,
+  };
 }
 export { ctaPairs, pairsPerDie };

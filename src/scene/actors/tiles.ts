@@ -1,4 +1,4 @@
-import { Group, type InstancedMesh, Matrix4, MathUtils, Vector3 } from "three";
+import { Group, type InstancedMesh, MathUtils, Matrix4, Vector3 } from "three";
 import { PAIR_POS, SEL_TILE_LOCAL, TILE_SIZE } from "../layout";
 import { makeBoxes } from "../materials";
 import { S } from "../state";
@@ -20,7 +20,10 @@ export function createSelectedTile(cube: Group) {
     const p = MathUtils.clamp(S.tileFly, 0, 1);
     // Start tracks the (possibly moving / scaled) cube until the tile departs.
     cube.updateMatrixWorld();
-    start.copy(SEL_TILE_LOCAL).setZ(SEL_TILE_LOCAL.z + 0.04).applyMatrix4(cube.matrixWorld);
+    start
+      .copy(SEL_TILE_LOCAL)
+      .setZ(SEL_TILE_LOCAL.z + 0.04)
+      .applyMatrix4(cube.matrixWorld);
     tmp.lerpVectors(start, end, p);
     tmp.z += Math.sin(Math.PI * p) * 3.2;
     const sx = MathUtils.lerp(TILE_SIZE * S.cubeScale, 1.52, p);

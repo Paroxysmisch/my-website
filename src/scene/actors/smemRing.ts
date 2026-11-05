@@ -1,8 +1,8 @@
 import {
   BufferGeometry,
+  Float32BufferAttribute,
   type Group,
   LineSegments,
-  Float32BufferAttribute,
   Mesh,
   PlaneGeometry,
   QuadraticBezierCurve3,
@@ -99,7 +99,11 @@ export function createBridge(parent: Group) {
   const g = new BufferGeometry();
   g.setAttribute("position", new Float32BufferAttribute(pts, 3));
   const m = new ShaderMaterial({
-    uniforms: { uColor: { value: [0.894, 0.435, 0.816] }, uAlpha: U.uBridge, uTime: U.uTime } as never,
+    uniforms: {
+      uColor: { value: [0.894, 0.435, 0.816] },
+      uAlpha: U.uBridge,
+      uTime: U.uTime,
+    } as never,
     vertexShader: lineVert,
     fragmentShader: withCommon(lineFrag),
   });

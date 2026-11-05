@@ -15,7 +15,12 @@ mkdirSync("public/posters", { recursive: true });
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/google-chrome",
   headless: true,
-  args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+  args: [
+    "--no-sandbox",
+    "--use-angle=swiftshader",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist",
+  ],
 });
 for (const size of SIZES) {
   const page = await browser.newPage();
@@ -23,8 +28,7 @@ for (const size of SIZES) {
   for (const [i, tau] of TAUS.entries()) {
     await page.goto(`${base}?tau=${tau}`, { waitUntil: "load" });
     await page.addStyleTag({
-      content:
-        "main,header,.site-footer,#hud,.scene-label,.skip-link{visibility:hidden!important}",
+      content: "main,header,.site-footer,#hud,.scene-label,.skip-link{visibility:hidden!important}",
     });
     await page.waitForFunction(() => document.documentElement.classList.contains("scene-on"), {
       timeout: 30000,

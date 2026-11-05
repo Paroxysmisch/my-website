@@ -24,7 +24,11 @@ export function createDie() {
     const side = die === 0 ? -1 : 1;
     for (let i = 0; i < GPU.hbmPerDie; i++) {
       specs.push({
-        pos: [side * (DIE.w + DIE.gap / 2 + 0.2 + HBM.w / 2), ((GPU.hbmPerDie - 1) / 2 - i) * HBM.pitch, 0.0],
+        pos: [
+          side * (DIE.w + DIE.gap / 2 + 0.2 + HBM.w / 2),
+          ((GPU.hbmPerDie - 1) / 2 - i) * HBM.pitch,
+          0.0,
+        ],
         size: [HBM.w, HBM.h, 0.3],
         color: "#33404f",
         info: [3, 0, 0.05, 0],

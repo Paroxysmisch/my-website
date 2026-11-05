@@ -6,7 +6,10 @@ let ready = false;
 function init() {
   if (ready) return;
   const wasm = readFileSync(
-    resolve(process.cwd(), "node_modules/@retorquere/bibtex-parser/dist/wasm/bibtex_parser_bg.wasm"),
+    resolve(
+      process.cwd(),
+      "node_modules/@retorquere/bibtex-parser/dist/wasm/bibtex_parser_bg.wasm",
+    ),
   );
   initSync({ module: wasm });
   ready = true;

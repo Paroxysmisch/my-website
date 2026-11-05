@@ -31,7 +31,10 @@ export function createHud(el: HTMLElement) {
         text = hud.epilogue;
         break;
       default: {
-        const n = Math.min(totalTiles, Math.max(1, Math.floor((1.3 * U.uDone.value - 0.09) * totalTiles)));
+        const n = Math.min(
+          totalTiles,
+          Math.max(1, Math.floor((1.3 * U.uDone.value - 0.09) * totalTiles)),
+        );
         text = hud.done(n);
       }
     }

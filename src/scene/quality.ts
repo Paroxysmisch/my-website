@@ -13,7 +13,10 @@ type NavigatorExtras = Navigator & {
 };
 
 /** Decide the starting tier from capabilities (spec §6.4). `off` means: use posters. */
-export function detectTier(canvas: HTMLCanvasElement): { tier: Tier; gl: WebGL2RenderingContext | null } {
+export function detectTier(canvas: HTMLCanvasElement): {
+  tier: Tier;
+  gl: WebGL2RenderingContext | null;
+} {
   const nav = navigator as NavigatorExtras;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || nav.connection?.saveData) {
     return { tier: "off", gl: null };

@@ -70,5 +70,6 @@ export const hud = {
     `k-block ${kb} / ${kBlocks} · stage ${((kb - 1) % PIPE.stages) + 1} / ${PIPE.stages} · ${stageKB} KB/stage`,
   mma: `tcgen05.mma.cta_group::2 · ${TILE.mmaM}×${TILE.mmaN}×${TILE.mmaK} · TMEM cols 0–${accumCols - 1}`,
   epilogue: `epilogue · FP32 → BF16 · TMEM cols ${tmemHalfCols}–${GPU.tmemCols - 1} → next tile`,
-  done: (n: number) => `${fmt(n)} / ${fmt(totalTiles)} tiles · ${n >= totalTiles ? "done" : "running"}`,
+  done: (n: number) =>
+    `${fmt(n)} / ${fmt(totalTiles)} tiles · ${n >= totalTiles ? "done" : "running"}`,
 };

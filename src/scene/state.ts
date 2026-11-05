@@ -51,4 +51,13 @@ export const S = {
   groups: [0, 0, 0, 0, 0, 0, 0, 0] as number[],
 };
 
-export const GROUP = { cubeA: 0, cubeB: 1, cubeC: 2, tma: 3, mmaIn: 4, mmaOut: 5, drain: 6, store: 7 };
+export const GROUP = {
+  cubeA: 0,
+  cubeB: 1,
+  cubeC: 2,
+  tma: 3,
+  mmaIn: 4,
+  mmaOut: 5,
+  drain: 6,
+  store: 7,
+};

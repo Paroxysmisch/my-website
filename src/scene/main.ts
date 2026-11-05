@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { Color, PerspectiveCamera, Scene, type Vector3, WebGLRenderer } from "three";
 import { createDie } from "./actors/die";
 import { createCubeFlows } from "./actors/flows";
 import { createMatrices } from "./actors/matrices";
@@ -169,7 +169,13 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     gsap.to(driver, {
       p: 1,
       ease: "none",
-      scrollTrigger: { start: 0, end: "max", scrub: 0.8, invalidateOnRefresh: true, onRefresh: computeAnchors },
+      scrollTrigger: {
+        start: 0,
+        end: "max",
+        scrub: 0.8,
+        invalidateOnRefresh: true,
+        onRefresh: computeAnchors,
+      },
       onUpdate: () => {
         const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
         setTau(scrollToTau(driver.p * maxScroll));
