@@ -170,9 +170,7 @@ html.scene-on #hud {
     right: 8px;
     max-width: none;
     padding: 6px 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.25;
   }
 }
 

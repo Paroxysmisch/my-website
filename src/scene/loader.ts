@@ -11,7 +11,7 @@ const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const saveData = !!nav.connection?.saveData;
 
-const posterFor = (n: number) => `/posters/chapter-${n}.avif`;
+const posterFor = (n: number) => `/posters/chapter-${n}${innerWidth <= 1024 ? "-m" : ""}.avif`;
 let posterOk = true;
 
 function showPoster(n: number) {
