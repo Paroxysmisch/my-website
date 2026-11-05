@@ -11,7 +11,7 @@ export const profileSchema = z.object({
   advisor: z.string().optional(),
   tagline: z.string(),
   bioMarkdown: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   links: z.object({
     github: z.string().optional(),
     scholar: z.string().optional(),
@@ -44,7 +44,7 @@ export const experienceSchema = z.array(
 );
 
 export const newsSchema = z.array(
-  z.object({ date: ymd, text: z.string(), link: z.string().url().optional() }),
+  z.object({ date: ymd, text: z.string(), link: z.url().optional() }),
 );
 
 export const statsSchema = z.object({

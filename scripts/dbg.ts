@@ -1,0 +1,10 @@
+import puppeteer from "puppeteer-core";
+const browser = await puppeteer.launch({ executablePath: "/usr/bin/google-chrome", headless: true, args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const page = await browser.newPage();
+await page.setViewport({ width: 1440, height: 900 });
+await page.goto("http://localhost:4321/?tau=7.5", { waitUntil: "load" });
+await page.waitForFunction(() => (window as any).__scene, { timeout: 20000 });
+await new Promise(r=>setTimeout(r,3000));
+console.log(await page.evaluate(() => { const s = (window as any).__scene; return JSON.stringify({ pos: s.camera.position, fov: s.camera.fov, view: s.camera.view, camT: s.S.camT, tau: s.S.tau, pkg: s.U.uPkgVis.value, cube: s.U.uCubeVis.value, det: s.U.uDetailVis.value }); }));
+await page.screenshot({ path: "/tmp/dbg.png" });
+await browser.close();

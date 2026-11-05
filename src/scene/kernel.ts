@@ -9,6 +9,7 @@ export const GPU = {
   dies: 2,
   smsPerDie: 74,
   hbmStacks: 8,
+  d2dTBps: 10,
   hbmPerDie: 4,
   smemPerSmKB: 228,
   tmemLanes: 128,
