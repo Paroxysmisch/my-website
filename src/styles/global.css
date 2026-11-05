@@ -252,6 +252,7 @@ html.scene-on #hud {
   justify-content: center;
   border-radius: 6px;
   white-space: nowrap;
+  flex: none;
   color: var(--text-muted);
 }
 .site-header nav a:hover,

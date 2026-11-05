@@ -58,8 +58,8 @@ const year = new Date().getFullYear();
     <section id="hero" class="chapter" data-chapter="0" aria-labelledby="name">
       <div class="col">
         <div class="hero-box">
-          <ChapterNote index={0} />
           <h1 id="name">{profile.name}</h1>
+          <ChapterNote index={0} />
           <p class="lead">{profile.tagline}</p>
           <p class="mono muted">{profile.title} · {profile.affiliation}</p>
         </div>
@@ -79,7 +79,7 @@ const year = new Date().getFullYear();
           </Panel>
         </div>
         <div class="reveal">
-          <Panel title="Stats" headingId="stats-h" meta={source}>
+          <Panel title="Stats" headingId="stats-h">
             <dl class="readout">
               <div><dt class="mono muted">Papers</dt><dd class="num">{stats.papers}</dd></div>
               <div><dt class="mono muted">Citations</dt><dd class="num">{stats.citations}</dd></div>
@@ -90,6 +90,7 @@ const year = new Date().getFullYear();
               unit="citations"
               data={stats.citationsByYear.slice(-6).map((c) => ({ label: String(c.year), value: c.count }))}
             />
+            <p class="mono muted">Source: {source}</p>
           </Panel>
         </div>
       </div>
