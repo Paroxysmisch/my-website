@@ -1,80 +1,267 @@
-import { Group } from "three";
+import { Group, Mesh, PlaneGeometry, ShaderMaterial } from "three";
 import {
+  C_THUMB,
   DETAIL_K,
   DETAIL_POS,
-  REGS,
+  HBM_SLAB,
   RING,
-  SLAB,
+  ringX,
+  SM_H,
+  SM_L,
+  SM_W,
   SM_X,
-  TENSOR,
-  TMA_POS,
-  WARP_Y,
-  warpX,
+  STAGING,
+  STRIP,
+  subPartition,
 } from "../layout";
-import { type BoxSpec, makeBoxes } from "../materials";
+import { type BoxSpec, makeBoxes, withCommon } from "../materials";
+import planeVert from "../shaders/plane.vert.glsl?raw";
+import stripFrag from "../shaders/strip.frag.glsl?raw";
+import tmemFrag from "../shaders/tmem.frag.glsl?raw";
+import { FB, U } from "../state";
 import { createDetailFlows } from "./flows";
-import { createLanes } from "./pipelineLanes";
-import { createBridge, createStrips, ringSpecs } from "./smemRing";
-import { createTmem } from "./tmemGrid";
+import { matrixMaterial } from "./matrices";
 
-/** "Inside the SM pair": two SMs with TMA, SMEM ring, TMEM, Tensor Cores, warp roles. */
+const KIND = { static: 0, slot: 3, barrier: 4, warp: 5, tensor: 6, regs: 8 } as const;
+const WARP_COL = [
+  "#36cfc0",
+  "#f0a93a",
+  "#8b909a",
+  "#8b909a",
+  "#4ed08a",
+  "#4ed08a",
+  "#4ed08a",
+  "#4ed08a",
+];
+
+/** Inside the SM pair, laid out like the Blackwell SM diagram:
+ *  L1 I-cache · 4 sub-partitions (L0 I$, warp scheduler, register file, TMEM slice, CUDA cores, Tensor Core,
+ *  LD/ST + SFU) · TMA · shared memory (6-stage ring + C staging) · texture units. */
 export function createSmPair() {
   const group = new Group();
   group.position.copy(DETAIL_POS);
   group.scale.setScalar(DETAIL_K);
 
   const specs: BoxSpec[] = [];
-  const GR = "#2a323d";
+  const box = (
+    x: number,
+    y: number,
+    z: number,
+    w: number,
+    h: number,
+    d: number,
+    color: string,
+    kind: number,
+    idx: number,
+    edge: number,
+    grp: number,
+  ) => specs.push({ pos: [x, y, z], size: [w, h, d], color, info: [kind, idx, edge, grp] });
+
   for (const X of SM_X) {
-    specs.push({ pos: [X, 0, -0.4], size: [20, 20, 0.8], color: "#1a1e25", info: [4, 0, 0.2, 0] });
-    specs.push({
-      pos: [X + TMA_POS.x, TMA_POS.y, 0.4],
-      size: [4, 2.2, 0.8],
-      color: GR,
-      info: [4, 0, 0.14, 1],
-    });
-    specs.push({
-      pos: [X + TENSOR.cx, TENSOR.cy, 0.5],
-      size: [TENSOR.w, TENSOR.h, 1.0],
-      color: "#5a4030",
-      info: [8, 0, 0.16, 0],
-    });
-    specs.push({
-      pos: [X + REGS.cx, REGS.cy, 0.3],
-      size: [REGS.w, REGS.h, 0.6],
-      color: GR,
-      info: [10, 0, 0.12, 4],
-    });
-    specs.push({
-      pos: [X + RING.cx, RING.cy, 0.3],
-      size: [2.6, 2.0, 0.6],
-      color: GR,
-      info: [10, 1, 0.12, 2],
-    });
-    // warp roles: producer, single MMA thread, 4 epilogue warps
-    for (let i = 0; i < 6; i++) {
-      const color = i === 0 ? "#8aa0b8" : i === 1 ? "#ffc46b" : "#d98a4e";
-      specs.push({
-        pos: [X + warpX(i), WARP_Y, 0.4],
-        size: [2.2, 1.6, 0.8],
-        color,
-        info: [6, i, 0.12, 5],
-      });
+    box(X, 0, -0.4, SM_W, SM_H, 0.8, "#1b1e25", KIND.static, 0, 0.16, 0);
+    box(X, SM_L.icache.y, 0.3, 19.2, SM_L.icache.h, 0.5, "#3b5877", KIND.static, 0, 0.1, FB.ctl);
+    for (let q = 0; q < 4; q++) {
+      const sp = subPartition(q);
+      const cx = X + sp.cx;
+      box(cx, sp.cy, 0.1, sp.w, sp.h, 0.4, "#252a33", KIND.static, 0, 0.12, 0);
+      box(cx, sp.l0, 0.4, sp.innerW, 0.5, 0.4, "#3b5877", KIND.static, 0, 0.08, FB.ctl);
+      box(
+        cx - 1.4,
+        sp.sched,
+        0.4,
+        sp.innerW - 3.4,
+        0.9,
+        0.4,
+        "#9a6420",
+        KIND.static,
+        0,
+        0.08,
+        FB.ctl,
+      );
+      box(cx, sp.dispatch, 0.4, sp.innerW, 0.45, 0.4, "#6e4414", KIND.static, 0, 0.07, FB.ctl);
+      box(cx, sp.regs, 0.4, sp.innerW, 0.95, 0.4, "#2b6577", KIND.regs, 0, 0.08, FB.regs);
+      // warps w and w+4 are scheduled on sub-partition q
+      for (const [k, w] of [q, q + 4].entries()) {
+        box(
+          cx + sp.innerW / 2 - 1.55 + k * 1.55 - 0.0,
+          sp.sched,
+          0.7,
+          1.35,
+          0.7,
+          0.5,
+          WARP_COL[w] as string,
+          KIND.warp,
+          w,
+          0.07,
+          FB.warps,
+        );
+      }
+      // CUDA cores | 5th-gen Tensor Core
+      box(
+        cx - sp.innerW / 2 + 1.2,
+        sp.cores,
+        0.4,
+        2.3,
+        sp.coresH,
+        0.4,
+        "#33502f",
+        KIND.static,
+        0,
+        0.1,
+        FB.ctl,
+      );
+      box(
+        cx - sp.innerW / 2 + 2.5 + 3.3,
+        sp.cores,
+        0.5,
+        6.35,
+        sp.coresH,
+        0.6,
+        "#5a4220",
+        KIND.tensor,
+        q,
+        0.12,
+        FB.tensor,
+      );
+      // 8 LD/ST + SFU
+      for (let i = 0; i < 8; i++) {
+        box(
+          cx - sp.innerW / 2 + 0.4 + i * 0.92,
+          sp.ldst,
+          0.4,
+          0.84,
+          0.8,
+          0.4,
+          "#6a312d",
+          KIND.static,
+          0,
+          0.06,
+          FB.misc,
+        );
+      }
+      box(
+        cx - sp.innerW / 2 + 0.4 + 8 * 0.92 + 0.62,
+        sp.ldst,
+        0.4,
+        1.45,
+        0.8,
+        0.4,
+        "#7a3a33",
+        KIND.static,
+        0,
+        0.06,
+        FB.misc,
+      );
     }
-    // HBM slab above the strips (C tile is written back here)
-    specs.push({
-      pos: [X, SLAB.y, -0.2],
-      size: [20.8, SLAB.h, 0.8],
-      color: "#2b3441",
-      info: [11, RING.cx, 0.16, 0],
-    });
+    box(X, SM_L.tma.y, 0.25, 19.2, SM_L.tma.h, 0.5, "#3d6a5d", KIND.static, 0, 0.1, FB.tma);
+    box(X, SM_L.smem.y, 0.1, 19.2, SM_L.smem.h, 0.4, "#2a3a55", KIND.static, 0, 0.12, FB.smem);
+    for (let i = 0; i < RING.count; i++) {
+      const x = X + ringX(i);
+      box(
+        x,
+        SM_L.smem.y + 0.78,
+        0.45,
+        RING.slotW,
+        1.35,
+        0.5,
+        "#6aa6ff",
+        KIND.slot,
+        i,
+        0.1,
+        FB.smem,
+      );
+      box(
+        x,
+        SM_L.smem.y - 0.78,
+        0.45,
+        RING.slotW,
+        1.35,
+        0.5,
+        "#e062d0",
+        KIND.slot,
+        i,
+        0.1,
+        FB.smem,
+      );
+      box(x, SM_L.smem.y + 1.64, 0.4, 0.6, 0.28, 0.3, "#f0a93a", KIND.barrier, i, 0.07, FB.smem);
+    }
+    box(
+      X + STAGING.x,
+      SM_L.smem.y,
+      0.45,
+      STAGING.w,
+      2.8,
+      0.5,
+      "#2f4a3a",
+      KIND.regs,
+      1,
+      0.1,
+      FB.smem,
+    );
+    for (let i = 0; i < 4; i++) {
+      box(
+        X - 7.2 + i * 4.8,
+        SM_L.tex.y,
+        0.2,
+        4.5,
+        SM_L.tex.h,
+        0.4,
+        "#27345c",
+        KIND.static,
+        0,
+        0.07,
+        FB.misc,
+      );
+    }
   }
-  specs.push(...ringSpecs());
+  // HBM / L2 slab the strips live in
+  box(0, HBM_SLAB.y, -0.2, HBM_SLAB.w, HBM_SLAB.h, 0.6, "#2a3141", KIND.static, 0, 0.12, FB.hbm);
   makeBoxes(specs, group, 10);
-  createStrips(group);
-  createTmem(group);
-  createLanes(group);
-  createBridge(group);
+
+  // TMEM slices: 32 lanes x 512 columns per sub-partition (4 slices = 128 x 512 per SM)
+  const tmemGeo = new PlaneGeometry(8.95, 1.25);
+  for (const X of SM_X) {
+    for (let q = 0; q < 4; q++) {
+      const sp = subPartition(q);
+      const m = new Mesh(
+        tmemGeo,
+        new ShaderMaterial({
+          uniforms: { ...U, uQuad: { value: q } } as never,
+          vertexShader: planeVert,
+          fragmentShader: withCommon(tmemFrag),
+        }),
+      );
+      m.position.set(X + sp.cx, sp.tmem, 0.55);
+      m.frustumCulled = false;
+      group.add(m);
+    }
+  }
+  // operand strips in HBM
+  const stripGeo = new PlaneGeometry(STRIP.half * 2, STRIP.h);
+  for (const X of SM_X) {
+    for (const [op, y] of [
+      [0, STRIP.a],
+      [1, STRIP.b],
+    ] as const) {
+      const m = new Mesh(
+        stripGeo,
+        new ShaderMaterial({
+          uniforms: { ...U, uOperand: { value: op } } as never,
+          vertexShader: planeVert,
+          fragmentShader: withCommon(stripFrag),
+        }),
+      );
+      m.position.set(X, y, 0.05);
+      m.frustumCulled = false;
+      group.add(m);
+    }
+  }
+  // C in HBM (thumbnail of the output matrix; the stored tile lights up)
+  const thumb = new Mesh(new PlaneGeometry(C_THUMB.size, C_THUMB.size), matrixMaterial(3));
+  thumb.position.set(C_THUMB.cx, C_THUMB.cy, 0.05);
+  thumb.frustumCulled = false;
+  group.add(thumb);
+
   createDetailFlows(group);
   return { group };
 }

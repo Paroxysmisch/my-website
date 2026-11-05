@@ -8,7 +8,7 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.setViewport({ width: +(process.argv[2] ?? 1440), height: +(process.argv[3] ?? 900) });
 page.on("pageerror", (e) => console.log("[pageerror]", e.message));
-await page.goto("http://localhost:4321/", { waitUntil: "load" });
+await page.goto("http://localhost:4322/", { waitUntil: "load" });
 await page.waitForFunction(() => document.documentElement.classList.contains("scene-on"), {
   timeout: 30000,
 });

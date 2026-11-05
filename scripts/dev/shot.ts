@@ -1,7 +1,7 @@
 // Usage: bun scripts/shot.ts <out.png> <width> <height> <tau | scroll:N> [base url]
 import puppeteer from "puppeteer-core";
 
-const [out = "/tmp/shot.png", w = "1440", h = "900", tau = "0", base = "http://localhost:4321/"] =
+const [out = "/tmp/shot.png", w = "1440", h = "900", tau = "0", base = "http://localhost:4322/"] =
   process.argv.slice(2);
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/google-chrome",

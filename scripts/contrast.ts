@@ -1,4 +1,5 @@
-// WCAG 2.x contrast check for every colour pairing the design uses (spec §7.4).
+// WCAG 2.x contrast check for the colour pairings the site uses (src/styles/tokens.css).
+// Text must reach AA (4.5:1); graphics 3:1. Body text is deliberately softer than pure white-on-black.
 import { readFileSync } from "node:fs";
 
 const css = readFileSync("src/styles/tokens.css", "utf8");
@@ -25,23 +26,15 @@ const ratio = (a: string, b: string) => {
 
 // [foreground, background, minimum, use]
 const pairs: [string, string, number, string][] = [
-  ["text", "bg", 7, "body text on page"],
-  ["text", "panel", 7, "body text in panels"],
-  ["text-muted", "bg", 7, "secondary text"],
-  ["text-muted", "panel", 7, "secondary text in panels"],
-  ["accent", "bg", 4.5, "links, stage captions"],
-  ["accent", "panel", 4.5, "links in panels"],
-  ["a", "panel", 4.5, "A label text"],
-  ["b", "panel", 4.5, "B label text"],
-  ["heat-2", "panel", 4.5, "stats readout numbers"],
-  ["heat-1", "panel", 4.5, "ramp used as text"],
-  ["heat-3", "panel", 4.5, "ramp used as text"],
-  ["border", "bg", 3, "panel borders vs page"],
-  ["border", "panel", 3, "borders vs panel"],
-  ["heat-0", "panel", 3, "ramp start (graphics)"],
-  ["a", "bg", 3, "matrix A graphics"],
-  ["b", "bg", 3, "matrix B graphics"],
-  ["text-muted", "bg", 4.5, "chart baseline bars"],
+  ["text", "bg", 7, "body text"],
+  ["muted", "bg", 4.5, "secondary text, captions, meta"],
+  ["muted", "bg-2", 4.5, "secondary text on raised surfaces"],
+  ["accent", "bg", 4.5, "kickers, hover state, scene labels"],
+  ["a", "bg", 4.5, "A scene labels"],
+  ["b", "bg", 4.5, "B scene labels"],
+  ["ok", "bg", 4.5, "epilogue scene labels"],
+  ["faint", "bg", 3, "bars / punctuation (graphics only)"],
+  ["line", "bg", 1.2, "hairline separators (decorative)"],
 ];
 let fail = 0;
 for (const [f, b, min, use] of pairs) {
@@ -52,9 +45,4 @@ for (const [f, b, min, use] of pairs) {
     `${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  --${f} on --${b}  ${use}`,
   );
 }
-// thermal ramp must be monotonic in luminance
-const ramp = ["heat-0", "heat-1", "heat-2", "heat-3"].map((k) => lum(tok[k] as string));
-const mono = ramp.every((v, i) => i === 0 || v > (ramp[i - 1] as number));
-console.log(`${mono ? "PASS" : "FAIL"}  thermal ramp monotonic in luminance`);
-if (!mono) fail++;
 process.exit(fail ? 1 : 0);

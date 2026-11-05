@@ -1,71 +1,40 @@
-import {
-  BufferGeometry,
-  Float32BufferAttribute,
-  Group,
-  LineSegments,
-  Mesh,
-  PlaneGeometry,
-  ShaderMaterial,
-} from "three";
-import { CUBE } from "../layout";
+import { Group, Mesh, PlaneGeometry, ShaderMaterial } from "three";
+import { MAT, MAT_POS } from "../layout";
 import { withCommon } from "../materials";
-import faceFrag from "../shaders/face.frag.glsl?raw";
-import lineFrag from "../shaders/line.frag.glsl?raw";
-import lineVert from "../shaders/line.vert.glsl?raw";
+import matrixFrag from "../shaders/matrix.frag.glsl?raw";
 import planeVert from "../shaders/plane.vert.glsl?raw";
-import { U } from "../state";
+import { S, U } from "../state";
 
-/** The matmul cube: A on the left face, B on top, C on the front face. */
+export const matrixMaterial = (kind: number) =>
+  new ShaderMaterial({
+    uniforms: { ...U, uMat: { value: kind } } as never,
+    vertexShader: planeVert,
+    fragmentShader: withCommon(matrixFrag),
+  });
+
+/** C = A · B as three dot-matrix slabs: A left, B top, C bottom-right (same convention as the walkthrough). */
 export function createMatrices() {
   const group = new Group();
-  const h = CUBE / 2;
-  const geo = new PlaneGeometry(CUBE, CUBE);
-
-  const face = (kind: number) =>
-    new ShaderMaterial({
-      uniforms: { ...U, uFace: { value: kind } } as never,
-      vertexShader: planeVert,
-      fragmentShader: withCommon(faceFrag),
-    });
-
-  // C: front (+z). uv.x = column, uv.y = row (top = 1)
-  const c = new Mesh(geo, face(2));
-  c.position.z = h;
-  // A: left (-x). Plane's local x -> world z (k), local y -> world y (row)
-  const a = new Mesh(geo, face(0));
-  a.rotation.y = -Math.PI / 2;
-  a.position.x = -h;
-  // B: top (+y). local x -> world x (col), local y -> world z (k)
-  const b = new Mesh(geo, face(1));
-  b.rotation.x = -Math.PI / 2;
-  b.position.y = h;
+  const { S: size, gap } = MAT;
+  const geo = new PlaneGeometry(size, size);
+  const a = new Mesh(geo, matrixMaterial(0));
+  a.position.set(-gap - size / 2, -size / 2, 0);
+  const b = new Mesh(geo, matrixMaterial(1));
+  b.position.set(size / 2, gap + size / 2, 0);
+  const c = new Mesh(geo, matrixMaterial(2));
+  c.position.set(size / 2, -size / 2, 0);
   for (const m of [a, b, c]) {
-    m.renderOrder = 20;
     m.frustumCulled = false;
+    m.renderOrder = 20;
+    group.add(m);
   }
-  group.add(a, b, c);
+  group.position.copy(MAT_POS);
 
-  // Iteration-space edges (copper hairlines)
-  const v = [-h, h];
-  const pts: number[] = [];
-  for (const x of v) for (const y of v) pts.push(x, y, -h, x, y, h);
-  for (const x of v) for (const z of v) pts.push(x, -h, z, x, h, z);
-  for (const y of v) for (const z of v) pts.push(-h, y, z, h, y, z);
-  const lg = new BufferGeometry();
-  lg.setAttribute("position", new Float32BufferAttribute(pts, 3));
-  const lm = new ShaderMaterial({
-    uniforms: {
-      uColor: { value: [0.851, 0.541, 0.306] },
-      uAlpha: U.uCubeVis,
-      uTime: U.uTime,
-    } as never,
-    vertexShader: lineVert,
-    fragmentShader: withCommon(lineFrag),
-  });
-  const edges = new LineSegments(lg, lm);
-  edges.renderOrder = 21;
-  edges.frustumCulled = false;
-  group.add(edges);
-
-  return { group, faces: { a, b, c } };
+  function update() {
+    group.position.set(MAT_POS.x + S.matX, MAT_POS.y + S.matY, MAT_POS.z);
+    group.scale.setScalar(S.matScale);
+    group.visible = U.uMatVis.value > 0.001;
+    a.visible = b.visible = U.uABVis.value > 0.001;
+  }
+  return { group, update, c };
 }

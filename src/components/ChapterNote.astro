@@ -3,12 +3,13 @@ import { chapters } from "../scene/chapters";
 
 interface Props {
   index: number;
+  /** "kicker" = small index + stage name, "caption" = plain-language one-liner */
+  part: "kicker" | "caption";
 }
 const c = chapters[Astro.props.index];
+const n = String(Astro.props.index + 1).padStart(2, "0");
 ---
-{c && (
-  <div class="chapter-note">
-    <p class="stage">{`Kernel stage ${Astro.props.index + 1} of ${chapters.length} · ${c.stage}`}</p>
-    {c.subtitle && <p>{c.subtitle}</p>}
-  </div>
+{c && Astro.props.part === "kicker" && (
+  <p class="kicker rv"><span class="num">{n}</span><span>{c.stage}</span></p>
 )}
+{c && Astro.props.part === "caption" && c.subtitle && <p class="caption rv">{c.subtitle}</p>}

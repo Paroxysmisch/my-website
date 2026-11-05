@@ -1,18 +1,24 @@
 precision highp float;
 uniform float uTime;
 
+// Palette (inspired by the GEMM walkthrough): A blue, B magenta, accumulator amber, done green, peer purple.
+const vec3 COL_A = vec3(0.416, 0.651, 1.000);
+const vec3 COL_B = vec3(0.878, 0.384, 0.816);
+const vec3 COL_ACC = vec3(0.941, 0.663, 0.227);
+const vec3 COL_OK = vec3(0.306, 0.816, 0.541);
+const vec3 COL_PEER = vec3(0.655, 0.545, 0.980);
+const vec3 BG = vec3(0.063, 0.067, 0.075);
+
+// Accumulator ramp: ember -> amber -> light
 vec3 heat(float t) {
-  t = clamp(t, 0.0, 1.0) * 3.0;
-  vec3 c0 = vec3(0.659, 0.314, 0.184);
-  vec3 c1 = vec3(0.941, 0.541, 0.235);
-  vec3 c2 = vec3(1.000, 0.769, 0.420);
-  vec3 c3 = vec3(1.000, 0.945, 0.788);
+  t = clamp(t, 0.0, 1.0);
+  vec3 c0 = vec3(0.20, 0.13, 0.07);
+  vec3 c1 = vec3(0.70, 0.43, 0.12);
+  vec3 c2 = vec3(0.941, 0.663, 0.227);
+  vec3 c3 = vec3(1.0, 0.90, 0.62);
+  t *= 3.0;
   return t < 1.0 ? mix(c0, c1, t) : (t < 2.0 ? mix(c1, c2, t - 1.0) : mix(c2, c3, t - 2.0));
 }
-const vec3 COL_A = vec3(0.310, 0.820, 0.878);
-const vec3 COL_B = vec3(0.894, 0.435, 0.816);
-const vec3 COPPER = vec3(0.851, 0.541, 0.306);
-const vec3 GRAPHITE = vec3(0.115, 0.130, 0.155);
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));

@@ -2,20 +2,22 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Color, PerspectiveCamera, Scene, type Vector3, WebGLRenderer } from "three";
 import { createDie } from "./actors/die";
-import { createCubeFlows } from "./actors/flows";
+import { createAssignFlows, createMatrixFlows } from "./actors/flows";
 import { createMatrices } from "./actors/matrices";
 import { createSmPair } from "./actors/smPair";
 import { createSelectedTile } from "./actors/tiles";
+import { beatAt } from "./beats";
 import { createCameraRig } from "./camera";
 import { createHud } from "./hud";
 import { createLabels } from "./labels";
 import { detectTier, makeQuality, stepDown, type Tier, Watchdog } from "./quality";
-import { S, U } from "./state";
+import { GROUP, S, U } from "./state";
 import { buildTimeline, CHAPTERS } from "./timeline";
 
 export type StartResult = { ok: true } | { ok: false; reason: string };
 
 export function start(canvas: HTMLCanvasElement): StartResult {
+  const stage = document.getElementById("stage") as HTMLElement;
   const { tier: startTier, gl } = detectTier(canvas);
   if (startTier === "off" || !gl) return { ok: false, reason: "tier-off" };
   gsap.registerPlugin(ScrollTrigger);
@@ -23,46 +25,43 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   let tier: Tier = startTier;
   let quality = makeQuality(tier);
   const renderer = new WebGLRenderer({ canvas, context: gl, antialias: false, alpha: false });
-  renderer.setClearColor(new Color("#0f1115"), 1);
-  renderer.autoClear = true;
+  renderer.setClearColor(new Color("#0f1012"), 1);
 
   const scene = new Scene();
   const camera = new PerspectiveCamera();
   const rig = createCameraRig(camera);
 
-  // ── Actors ────────────────────────────────────────────────────────────────
-  const cube = createMatrices();
-  const cubeFlows = createCubeFlows(cube.group);
+  // ── Actors ──
+  const mats = createMatrices();
+  createMatrixFlows(mats.group);
   const die = createDie();
+  createAssignFlows(die.group);
   const detail = createSmPair();
-  const tile = createSelectedTile(cube.group);
-  scene.add(die.group, detail.group, cube.group, tile.group);
-  void cubeFlows;
+  const tile = createSelectedTile(mats.group);
+  scene.add(die.group, detail.group, mats.group, tile.group);
 
-  const labelHost = document.createElement("div");
-  labelHost.setAttribute("aria-hidden", "true");
-  document.body.appendChild(labelHost);
-  const labels = createLabels(labelHost, camera, () => ({
-    toWorld: (v: Vector3) => cube.group.localToWorld(v.clone()),
-  }));
-  const hudEl = document.getElementById("hud") as HTMLElement;
-  const setHud = createHud(hudEl);
-
+  const labelHost = stage.querySelector<HTMLElement>(".labels") as HTMLElement;
+  const labels = createLabels(labelHost, camera, (v: Vector3) => mats.group.localToWorld(v));
+  const setHud = createHud(document.getElementById("hud") as HTMLElement);
+  const beatEl = document.getElementById("beat") as HTMLElement;
+  let lastBeat = "";
   const tl = buildTimeline();
 
-  // ── Sizing ────────────────────────────────────────────────────────────────
-  let W = innerWidth;
-  let H = innerHeight;
+  // ── Sizing (the stage is the full viewport on desktop, a strip above the text on phones) ──
+  let W = stage.clientWidth;
+  let H = stage.clientHeight;
+  let phone = innerWidth <= 1024;
   function resize() {
-    W = innerWidth;
-    H = innerHeight;
+    W = Math.max(1, stage.clientWidth);
+    H = Math.max(1, stage.clientHeight);
+    phone = innerWidth <= 1024;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, quality.dprCap));
     renderer.setSize(W, H, false);
-    rig.layout(W, H);
-    dirty = true;
+    rig.layout(W, H, phone);
+    requestRender();
   }
 
-  // ── Frame ─────────────────────────────────────────────────────────────────
+  // ── Frame loop (render on demand; ambient animation only while the hero is on screen) ──
   let dirty = true;
   let running = false;
   let visible = true;
@@ -71,25 +70,25 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   const dog = new Watchdog(tier === "high" ? 20 : 24, () => {
     tier = stepDown(tier);
     const next = makeQuality(tier);
-    // DPR first; only the tier label changes otherwise
     quality = { ...next, dprCap: Math.max(1, Math.min(quality.dprCap, next.dprCap) - 0.25) };
     resize();
   });
 
   function apply() {
-    const tau = S.tau;
-    cube.group.position.y = S.cubeY;
-    cube.group.scale.setScalar(S.cubeScale);
-    const cubeFlow = U.uStreak.value * U.uCubeVis.value;
-    S.groups[0] = cubeFlow;
-    S.groups[1] = cubeFlow;
-    S.groups[2] = cubeFlow;
-    U.uBridge.value = U.uTmaOn.value * U.uDetailVis.value;
+    mats.update();
+    const band = U.uBand.value * U.uMatVis.value * U.uABVis.value;
+    S.groups[GROUP.matA] = band;
+    S.groups[GROUP.matB] = band;
     rig.update(S.camT);
     camera.updateMatrixWorld();
     tile.update();
-    labels(tau, W, H);
-    setHud(Math.min(CHAPTERS - 1, Math.max(0, Math.floor(tau + 1e-6))));
+    labels(S.tau, W, H);
+    setHud(Math.min(CHAPTERS - 1, Math.max(0, Math.floor(S.tau + 1e-6))));
+    const b = beatAt(S.tau);
+    if (b !== lastBeat) {
+      beatEl.textContent = b;
+      lastBeat = b;
+    }
   }
 
   function frame(now: number) {
@@ -97,8 +96,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     if (!visible || document.hidden) return;
     const dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-    // Idle animation only in the hero (data streaks); everywhere else render on demand.
-    const ambient = S.tau < 0.9;
+    const ambient = S.tau < 1.0;
     if (ambient) {
       U.uTime.value += dt;
       U.uFlowT.value += dt;
@@ -120,18 +118,20 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     running = true;
     requestAnimationFrame(frame);
   }
-  const requestRender = () => {
+  function requestRender() {
     dirty = true;
     schedule();
-  };
+  }
 
-  // ── Scroll → τ (chapter units) via ScrollTrigger scrub, mapped through section offsets ─
+  // ── Scroll → τ via ScrollTrigger scrub, mapped through section offsets ──
   const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-chapter]"));
   let anchors: number[] = [];
   function computeAnchors() {
     const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const stageBottom = phone ? stage.getBoundingClientRect().bottom : 0;
+    const ref = phone ? stageBottom + 0.3 * (innerHeight - stageBottom) : innerHeight * 0.5;
     anchors = sections.map((s, i) =>
-      i === 0 ? 0 : Math.max(0, s.getBoundingClientRect().top + scrollY - innerHeight * 0.55),
+      i === 0 ? 0 : Math.max(0, s.getBoundingClientRect().top + scrollY - ref),
     );
     anchors.push(maxScroll);
     for (let i = 1; i < anchors.length; i++) {
@@ -158,11 +158,9 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   }
 
   const driver = { p: 0 };
-  computeAnchors();
-  const params = new URLSearchParams(location.search);
-  const fixed = params.get("tau");
-
   resize();
+  computeAnchors();
+  const fixed = new URLSearchParams(location.search).get("tau");
   if (fixed !== null) {
     setTau(Number(fixed));
   } else {
@@ -184,21 +182,19 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     setTau(scrollToTau(scrollY));
   }
 
-  // Debounced resize
   let rt = 0;
-  addEventListener("resize", () => {
+  new ResizeObserver(() => {
     clearTimeout(rt);
     rt = window.setTimeout(() => {
       resize();
       computeAnchors();
       ScrollTrigger.refresh();
-      requestRender();
-    }, 120);
-  });
+    }, 100);
+  }).observe(stage);
+  addEventListener("orientationchange", () => requestRender());
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) requestRender();
   });
-  // Pause when the canvas is effectively out of view (footer)
   const footer = document.querySelector(".site-footer");
   if (footer) {
     new IntersectionObserver(([e]) => {
@@ -213,8 +209,6 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   });
 
   (window as unknown as { __scene?: unknown }).__scene = { setTau, tl, renderer, camera, S, U };
-  requestRender();
-  // Pre-compile shaders during idle so chapter transitions don't hitch.
   renderer.compile(scene, camera);
   return { ok: true };
 }

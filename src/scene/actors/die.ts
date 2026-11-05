@@ -1,55 +1,48 @@
 import { Group } from "three";
-import { ctaPairs, GPU, totalSMs } from "../kernel";
-import { DIE, dieCenterX, HBM, SM_SIZE, smPosition } from "../layout";
+import { DIE_SM_H, DIE_SM_W, dieBlocks, dieSms } from "../layout";
 import { type BoxSpec, makeBoxes } from "../materials";
 
-/** B200 package: 2 dies + die-to-die link + 8 HBM3e stacks + 148 SMs (74 CTA pairs). */
+const COLORS: Record<string, string> = {
+  die: "#1c1f26",
+  hbmctrl: "#2c313b",
+  io: "#22262e",
+  gpc: "#21252d",
+  l2: "#262c3a",
+  giga: "#3a3125",
+  dec: "#2c313b",
+  hbi: "#2f3646",
+  hbm: "#303b4d",
+};
+
+/** B200 package laid out like the Blackwell Ultra die shot: two dies joined by NV-HBI, 4 GPCs + 2 L2 slabs
+ *  per die, a GigaThread engine band across the middle, HBM controllers on the top/bottom edges. */
 export function createDie() {
   const group = new Group();
   const specs: BoxSpec[] = [];
-  const full = 2 * DIE.w + DIE.gap + 2 * (HBM.w + 0.5);
   specs.push({
-    pos: [0, 0, -0.16],
-    size: [full + 0.8, DIE.h + 1.5, 0.2],
-    color: "#171b21",
-    info: [1, 0, 0.05, 0],
+    pos: [0, 0, -0.12],
+    size: [15.6, 12.6, 0.1],
+    color: "#14161b",
+    info: [1, 0, 0.04, 0],
   });
-  for (const die of [0, 1]) {
+  for (const b of dieBlocks) {
+    const z = b.kind === "die" ? -0.04 : b.kind === "hbm" ? 0.05 : b.kind === "gpc" ? 0.0 : 0.01;
+    const th = b.kind === "die" ? 0.1 : b.kind === "hbm" ? 0.22 : 0.06;
     specs.push({
-      pos: [dieCenterX(die), 0, -0.03],
-      size: [DIE.w, DIE.h, 0.12],
-      color: "#242a33",
-      info: [1, 0, 0.05, 0],
-    });
-    const side = die === 0 ? -1 : 1;
-    for (let i = 0; i < GPU.hbmPerDie; i++) {
-      specs.push({
-        pos: [
-          side * (DIE.w + DIE.gap / 2 + 0.2 + HBM.w / 2),
-          ((GPU.hbmPerDie - 1) / 2 - i) * HBM.pitch,
-          0.0,
-        ],
-        size: [HBM.w, HBM.h, 0.3],
-        color: "#33404f",
-        info: [3, 0, 0.05, 0],
-      });
-    }
-  }
-  specs.push({
-    pos: [0, 0, 0.0],
-    size: [DIE.gap * 0.85, DIE.h * 0.55, 0.12],
-    color: "#8a5a36",
-    info: [1, 0, 0.03, 0],
-  });
-  for (let i = 0; i < totalSMs; i++) {
-    const p = smPosition(i);
-    specs.push({
-      pos: [p.x, p.y, 0.1],
-      size: [SM_SIZE, SM_SIZE, 0.1],
-      color: "#2c333d",
-      info: [2, Math.floor(i / 2), 0.035, 0],
+      pos: [b.cx, b.cy, z],
+      size: [b.w - (b.kind === "die" ? 0 : 0.04), b.h - (b.kind === "die" ? 0 : 0.04), th],
+      color: COLORS[b.kind] ?? "#222",
+      info: [1, 0, b.kind === "gpc" || b.kind === "hbm" ? 0.025 : 0.018, 0],
     });
   }
   makeBoxes(specs, group, 5);
-  return { group, pairCount: ctaPairs };
+
+  const sm: BoxSpec[] = dieSms.map((s) => ({
+    pos: [s.cx, s.cy, 0.07],
+    size: [DIE_SM_W, DIE_SM_H, 0.06],
+    color: "#38404d",
+    info: [2, s.pair, 0.016, 0],
+  }));
+  makeBoxes(sm, group, 6);
+  return { group };
 }

@@ -1,62 +1,19 @@
 ---
-import { ramp } from "../lib/ramp";
-
 interface Props {
   label: string;
   value: number;
   max: number;
-  cells?: number;
-  unit?: string;
 }
-const { label, value, max, unit = "" } = Astro.props;
-const cells = Astro.props.cells ?? Math.min(20, Math.max(1, max));
-const filled = max > 0 ? Math.round((value / max) * cells) : 0;
+const { label, value, max } = Astro.props;
 ---
-<div class="meter-row">
-  <div
-    class="meter"
-    role="meter"
-    aria-label={label}
-    aria-valuemin={0}
-    aria-valuemax={max}
-    aria-valuenow={value}
-    aria-valuetext={`${value} of ${max}${unit ? ` ${unit}` : ""}`}
-  >
-    {Array.from({ length: cells }, (_, i) => (
-      <span
-        class:list={["cell", { on: i < filled }]}
-        style={i < filled ? `--c:${ramp(cells > 1 ? i / (cells - 1) : 1)}` : undefined}
-      />
-    ))}
-  </div>
-  <span class="num value">{value}<span class="muted"> / {max}{unit ? ` ${unit}` : ""}</span></span>
+<div
+  class="meter"
+  role="meter"
+  aria-label={label}
+  aria-valuemin={0}
+  aria-valuemax={max}
+  aria-valuenow={value}
+  aria-valuetext={`${value} of ${max}`}
+>
+  <span style={`width:${max > 0 ? (value / max) * 100 : 0}%`}></span>
 </div>
-
-<style>
-  .meter-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .meter {
-    display: flex;
-    gap: 3px;
-    flex: 1 1 160px;
-    min-width: 160px;
-  }
-  .cell {
-    flex: 1;
-    height: 16px;
-    border-radius: 2px;
-    border: 1px solid var(--border);
-    background: transparent;
-  }
-  .cell.on {
-    background: var(--c);
-    border-color: var(--c);
-  }
-  .value {
-    white-space: nowrap;
-  }
-</style>

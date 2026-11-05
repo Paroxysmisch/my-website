@@ -7,33 +7,43 @@ import {
   Mesh,
   Vector3,
 } from "three";
-import { PIPE } from "../kernel";
-import { CUBE, REGS, RING, SLAB, SM_X, STRIP, slotCenter, TENSOR, TMEM } from "../layout";
+import {
+  C_THUMB,
+  diePairs,
+  gigaCenter,
+  MAT,
+  RING,
+  ringX,
+  SM_L,
+  SM_X,
+  STAGING,
+  STRIP,
+  subPartition,
+} from "../layout";
 import { additiveMaterial } from "../materials";
 import flowFrag from "../shaders/flow.frag.glsl?raw";
 import flowVert from "../shaders/flow.vert.glsl?raw";
-import { GROUP } from "../state";
-import { A_COL, B_COL } from "./smemRing";
+import { GROUP, S } from "../state";
+
+export const A_HEX = "#6aa6ff";
+export const B_HEX = "#e062d0";
+const ACC_HEX = "#f0a93a";
+const OK_HEX = "#4ed08a";
 
 interface Flow {
-  start: Vector3 | number[];
-  end: Vector3 | number[];
+  start: number[];
+  end: number[];
+  via?: number[];
   color: string;
   type: number;
   group: number;
   size: number;
   w: number;
   speed?: number;
+  arc?: number;
 }
 
-const v = (a: Vector3 | number[]) => (Array.isArray(a) ? a : [a.x, a.y, a.z]);
-
-function build(
-  flows: Flow[],
-  parent: Group,
-  strip: [number, number],
-  uniformsExtra: Record<string, unknown> = {},
-) {
+function build(flows: Flow[], parent: Group) {
   const n = flows.length;
   const geo = new InstancedBufferGeometry();
   geo.setAttribute(
@@ -42,30 +52,30 @@ function build(
   );
   geo.setIndex([0, 1, 2, 0, 2, 3]);
   geo.instanceCount = n;
-  const start = new Float32Array(n * 3);
-  const end = new Float32Array(n * 3);
-  const color = new Float32Array(n * 3);
-  const info = new Float32Array(n * 4);
-  const extra = new Float32Array(n * 4);
+  const A = (len: number) => new Float32Array(n * len);
+  const start = A(3);
+  const end = A(3);
+  const via = A(3);
+  const color = A(3);
+  const info = A(4);
+  const extra = A(4);
   const c = new Color();
   flows.forEach((f, i) => {
-    start.set(v(f.start), i * 3);
-    end.set(v(f.end), i * 3);
+    start.set(f.start, i * 3);
+    end.set(f.end, i * 3);
+    via.set(f.via ?? f.end, i * 3);
     c.set(f.color).convertLinearToSRGB();
     color.set([c.r, c.g, c.b], i * 3);
     info.set([f.type, f.group, f.size, f.w], i * 4);
-    extra.set([f.speed ?? 0.3, 0, 0, 0], i * 4);
+    extra.set([f.speed ?? 0.3, f.arc ?? 0, 0, 0], i * 4);
   });
   geo.setAttribute("aStart", new InstancedBufferAttribute(start, 3));
   geo.setAttribute("aEnd", new InstancedBufferAttribute(end, 3));
+  geo.setAttribute("aVia", new InstancedBufferAttribute(via, 3));
   geo.setAttribute("aColor", new InstancedBufferAttribute(color, 3));
   geo.setAttribute("aInfo", new InstancedBufferAttribute(info, 4));
   geo.setAttribute("aExtra", new InstancedBufferAttribute(extra, 4));
-  const mat = additiveMaterial(flowVert, flowFrag, {
-    uGroup: { value: S_GROUPS },
-    uStrip: { value: strip },
-    ...uniformsExtra,
-  });
+  const mat = additiveMaterial(flowVert, flowFrag, { uGroup: { value: S.groups } });
   const mesh = new Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = 40;
@@ -73,171 +83,185 @@ function build(
   return mesh;
 }
 
-// shared array so the timeline can drive all flow meshes with one write
-import { S } from "../state";
-
-const S_GROUPS = S.groups;
-
-let seed = 7;
+let seed = 11;
 const rnd = () => {
   seed = (seed * 16807) % 2147483647;
   return seed / 2147483647;
 };
 
-export function createCubeFlows(parent: Group) {
-  const h = CUBE / 2;
+/** Hero: dot-product streams. A flows along the active row, B down the active column, meeting in C. */
+export function createMatrixFlows(parent: Group) {
+  const { S: size, gap } = MAT;
   const flows: Flow[] = [];
-  const N = 46;
-  for (let i = 0; i < N; i++) {
-    const y = (rnd() * 2 - 1) * h * 0.95;
-    const z = (rnd() * 2 - 1) * h * 0.95;
+  for (let i = 0; i < 26; i++) {
     flows.push({
-      start: [-h, y, z],
-      end: [h, y, z],
-      color: A_COL,
-      type: 0,
-      group: GROUP.cubeA,
-      size: 0.16,
+      start: [-gap, 0, 0.05],
+      end: [0, 0, 0.05],
+      color: A_HEX,
+      type: 4,
+      group: GROUP.matA,
+      size: 0.17,
       w: rnd(),
-      speed: 0.12 + rnd() * 0.06,
+      speed: 0.22 + rnd() * 0.1,
+      arc: 0.5 + rnd() * 0.9,
     });
-    const x = (rnd() * 2 - 1) * h * 0.95;
-    const z2 = (rnd() * 2 - 1) * h * 0.95;
     flows.push({
-      start: [x, h, z2],
-      end: [x, -h, z2],
-      color: B_COL,
-      type: 0,
-      group: GROUP.cubeB,
-      size: 0.16,
+      start: [0, gap, 0.05],
+      end: [0, 0, 0.05],
+      color: B_HEX,
+      type: 5,
+      group: GROUP.matB,
+      size: 0.17,
       w: rnd(),
-      speed: 0.12 + rnd() * 0.06,
-    });
-    const x3 = (rnd() * 2 - 1) * h * 0.95;
-    const y3 = (rnd() * 2 - 1) * h * 0.95;
-    flows.push({
-      start: [x3, y3, -h],
-      end: [x3, y3, h],
-      color: "#ffc46b",
-      type: 0,
-      group: GROUP.cubeC,
-      size: 0.2,
-      w: rnd(),
-      speed: 0.1 + rnd() * 0.05,
+      speed: 0.22 + rnd() * 0.1,
+      arc: 0.5 + rnd() * 0.9,
     });
   }
-  return build(flows, parent, [0, 0]);
+  void size;
+  return build(flows, parent);
 }
 
+/** Die: GigaThread engine hands CTA pairs out to every enabled SM pair. */
+export function createAssignFlows(parent: Group) {
+  const flows: Flow[] = diePairs.map((p) => {
+    const g = gigaCenter(p.die);
+    return {
+      start: [g.x, g.y, 0.12],
+      end: [p.cx, p.cy, 0.14],
+      color: ACC_HEX,
+      type: 3,
+      group: GROUP.assign,
+      size: 0.1,
+      w: p.id,
+      arc: 0.35,
+    };
+  });
+  return build(flows, parent);
+}
+
+/** Inside the SM pair (all coordinates in detail units). */
 export function createDetailFlows(parent: Group) {
   const flows: Flow[] = [];
-  const slotPos = (X: number, i: number, dx = 0) => {
-    const c = slotCenter(i);
-    return new Vector3(X + c.x + dx, c.y, 1.0);
-  };
-  const tc = (X: number) => new Vector3(X + TENSOR.cx, TENSOR.cy, 1.4);
+  const tma = SM_L.tma.y;
+  const sm = SM_L.smem.y;
   SM_X.forEach((X, si) => {
     const peer = SM_X[1 - si] as number;
-    for (let i = 0; i < PIPE.stages; i++) {
-      const c = slotCenter(i);
-      const cos = Math.cos(c.rot);
-      // TMA: strip (x set in shader) -> slot half
-      flows.push({
-        start: [0, STRIP.a, 1.0].map((q, k) => (k === 0 ? X : q)),
-        end: slotPos(X, i, -0.6 * cos),
-        color: A_COL,
-        type: 1,
-        group: GROUP.tma,
-        size: 0.9,
-        w: i,
-      });
-      flows.push({
-        start: [0, STRIP.b, 1.0].map((q, k) => (k === 0 ? X : q)),
-        end: slotPos(X, i, 0.6 * cos),
-        color: B_COL,
-        type: 1,
-        group: GROUP.tma,
-        size: 0.9,
-        w: i,
-      });
-      // MMA operand reads: own slot -> own tensor core; B half of the peer -> this tensor core
-      flows.push({
-        start: slotPos(X, i, -0.6 * cos),
-        end: tc(X),
-        color: A_COL,
-        type: 2,
-        group: GROUP.mmaIn,
-        size: 0.8,
-        w: i,
-      });
-      flows.push({
-        start: slotPos(X, i, 0.6 * cos),
-        end: tc(X),
-        color: B_COL,
-        type: 2,
-        group: GROUP.mmaIn,
-        size: 0.8,
-        w: i,
-      });
-      flows.push({
-        start: slotPos(peer, i, 0.6 * cos),
-        end: tc(X),
-        color: B_COL,
-        type: 2,
-        group: GROUP.mmaIn,
-        size: 0.7,
-        w: i,
-      });
+    const sps = [0, 1, 2, 3].map(subPartition);
+    for (let i = 0; i < RING.count; i++) {
+      const x = X + ringX(i);
+      for (const [op, y, hex, off] of [
+        ["A", STRIP.a, A_HEX, 0.78],
+        ["B", STRIP.b, B_HEX, -0.78],
+      ] as const) {
+        flows.push({
+          start: [X, y, 0.9],
+          via: [x, tma, 1.4],
+          end: [x, sm + off, 1.0],
+          color: hex,
+          type: 1,
+          group: GROUP.tma,
+          size: 1.5,
+          w: i,
+          arc: 3.5,
+        });
+        void op;
+      }
+      // MMA reads the slot: own A rows and own B half -> all four tensor cores; peer's B half too
+      for (const sp of sps) {
+        const tc = [X + sp.cx, sp.cores, 1.5];
+        flows.push({
+          start: [x, sm + 0.78, 1.1],
+          end: tc,
+          color: A_HEX,
+          type: 2,
+          group: GROUP.mmaIn,
+          size: 1.2,
+          w: i,
+          arc: 2,
+        });
+        flows.push({
+          start: [x, sm - 0.78, 1.1],
+          end: tc,
+          color: B_HEX,
+          type: 2,
+          group: GROUP.mmaIn,
+          size: 1.2,
+          w: i,
+          arc: 2,
+        });
+        flows.push({
+          start: [peer + ringX(i), sm - 0.78, 1.1],
+          end: tc,
+          color: B_HEX,
+          type: 2,
+          group: GROUP.mmaIn,
+          size: 1.05,
+          w: i,
+          arc: 4,
+        });
+      }
     }
-    // tensor core -> TMEM accumulate
-    for (let i = 0; i < 6; i++) {
-      flows.push({
-        start: [X + TENSOR.cx - 3 + i * 1.2, TENSOR.cy + 1.5, 1.4],
-        end: [X + TMEM.cx - 3 + i * 1.2, TMEM.cy - 0.6, 0.9],
-        color: "#ffc46b",
-        type: 0,
-        group: GROUP.mmaOut,
-        size: 0.7,
-        w: i / 6,
-        speed: 0.7,
-      });
+    for (const sp of sps) {
+      for (let k = 0; k < 3; k++) {
+        const dx = (k - 1) * 2.2;
+        // tensor core -> TMEM accumulate
+        flows.push({
+          start: [X + sp.cx + dx, sp.cores + sp.coresH / 2 - 0.2, 1.3],
+          end: [X + sp.cx + dx, sp.tmem, 0.9],
+          color: ACC_HEX,
+          type: 0,
+          group: GROUP.mmaOut,
+          size: 0.98,
+          w: k / 3,
+          speed: 0.9,
+        });
+        // epilogue: TMEM -> registers (tcgen05.ld)
+        flows.push({
+          start: [X + sp.cx + dx, sp.tmem, 1.0],
+          end: [X + sp.cx + dx, sp.regs, 1.0],
+          color: OK_HEX,
+          type: 0,
+          group: GROUP.drain,
+          size: 0.9,
+          w: k / 3,
+          speed: 0.8,
+        });
+      }
+      // registers -> C staging buffer in shared memory
+      for (let k = 0; k < 2; k++) {
+        flows.push({
+          start: [X + sp.cx + (k - 0.5) * 2, sp.regs, 1.3],
+          end: [X + STAGING.x + (k - 0.5) * 0.8, sm, 1.2],
+          color: OK_HEX,
+          type: 0,
+          group: GROUP.store,
+          size: 1.05,
+          w: (k + sp.q * 2) / 8,
+          speed: 0.45,
+          arc: 2.5,
+        });
+      }
     }
-    // epilogue: TMEM -> registers
-    for (let i = 0; i < 6; i++) {
+    // TMA store: staging -> C in HBM
+    for (let k = 0; k < 6; k++) {
       flows.push({
-        start: [X + TMEM.cx - 3 + i * 1.2, TMEM.cy - 0.5, 1.5],
-        end: [X + REGS.cx - 3 + i * 1.2, REGS.cy + 0.6, 1.0],
-        color: "#ffc46b",
-        type: 0,
-        group: GROUP.drain,
-        size: 0.7,
-        w: i / 6,
-        speed: 0.55,
-      });
-    }
-    // registers -> staging (SMEM), then TMA store -> HBM
-    for (let i = 0; i < 4; i++) {
-      flows.push({
-        start: [X + REGS.cx - 4 + i, REGS.cy, 1.0],
-        end: [X + RING.cx + (i - 1.5) * 0.4, RING.cy, 1.0],
-        color: "#ffc46b",
+        start: [X + STAGING.x, sm - 1.0, 1.3],
+        end: [
+          C_THUMB.cx + (si === 0 ? -1.3 : 1.3) + (k - 2.5) * 0.15,
+          C_THUMB.cy + (si === 0 ? 1.2 : -1.2) * 0,
+          1.0,
+        ],
+        color: OK_HEX,
         type: 0,
         group: GROUP.store,
-        size: 0.7,
-        w: i / 4,
-        speed: 0.6,
-      });
-      flows.push({
-        start: [X + RING.cx + (i - 1.5) * 0.4, RING.cy + 1.0, 1.2],
-        end: [X + RING.cx + (i - 1.5) * 0.4, SLAB.y, 1.2],
-        color: "#fff1c9",
-        type: 0,
-        group: GROUP.store,
-        size: 0.8,
-        w: i / 4,
-        speed: 0.5,
+        size: 1.2,
+        w: k / 6,
+        speed: 0.4,
+        arc: 3,
       });
     }
   });
-  return build(flows, parent, [STRIP.x0, STRIP.x1]);
+  return build(flows, parent);
 }
+
+export const _unused = Vector3;

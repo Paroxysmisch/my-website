@@ -1,7 +1,7 @@
 // Computed-style audit on the built site: min font size, headings, overflow, touch targets, aria.
 import puppeteer from "puppeteer-core";
 
-const base = process.env.BASE ?? "http://localhost:4321/";
+const base = process.env.BASE ?? "http://localhost:4322/";
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/google-chrome",
   headless: true,
@@ -41,7 +41,7 @@ for (const [w, h] of [
     out.overflowX = document.documentElement.scrollWidth - innerWidth;
     const tiny: string[] = [];
     for (const el of document.querySelectorAll<HTMLElement>(
-      ".link-btn,.btn,.site-header nav a,.skip-link",
+      ".btn,.links-row a,.menu-mobile summary,.menu-mobile nav a",
     )) {
       const b = el.getBoundingClientRect();
       if (
@@ -53,7 +53,7 @@ for (const [w, h] of [
         tiny.push(`${el.textContent?.trim()} ${Math.round(b.width)}x${Math.round(b.height)}`);
     }
     out.smallTargets = tiny;
-    out.hiddenAria = ["#scene", "#hud"].map(
+    out.hiddenAria = ["#stage"].map(
       (s) =>
         document.querySelector(s)?.getAttribute("aria-hidden") ??
         (document.querySelector(s) ? "MISSING" : "absent"),

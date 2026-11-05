@@ -1,0 +1,57 @@
+---
+interface Props {
+  title: string;
+  unit: string;
+  data: { label: string; value: number }[];
+}
+const { title, unit, data } = Astro.props;
+const max = Math.max(1, ...data.map((d) => d.value));
+const H = 44;
+const gap = 6;
+const bw = 100 / data.length;
+---
+<figure class="spark">
+  <svg
+    viewBox={`0 0 100 ${H}`}
+    preserveAspectRatio="none"
+    role="img"
+    aria-label={`${title}: ${data.map((d) => `${d.label} ${d.value}`).join(", ")}`}
+  >
+    {data.map((d, i) => (
+      <rect
+        x={i * bw + gap / 8}
+        y={H - (d.value / max) * H}
+        width={bw - gap / 4}
+        height={(d.value / max) * H}
+        rx="0.8"
+        fill="var(--accent)"
+        opacity={0.35 + 0.65 * ((i + 1) / data.length)}
+      />
+    ))}
+  </svg>
+  <figcaption class="meta">
+    <span>{title}</span>
+    <span>{data[0]?.label}–{data[data.length - 1]?.label} · peak {max} {unit}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .spark {
+    display: grid;
+    gap: 8px;
+    max-width: 26rem;
+    margin: 0;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: 52px;
+  }
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: var(--muted);
+  }
+</style>

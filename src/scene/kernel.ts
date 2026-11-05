@@ -8,6 +8,11 @@ export const GPU = {
   name: "B200",
   dies: 2,
   smsPerDie: 74,
+  /** physical SMs per die (80 = 4 GPCs x 10 TPCs x 2 SMs); the rest are fused off on B200 */
+  smsPhysicalPerDie: 80,
+  gpcsPerDie: 4,
+  tpcsPerGpc: 10,
+  subPartitions: 4,
   hbmStacks: 8,
   d2dTBps: 10,
   hbmPerDie: 4,
@@ -20,6 +25,18 @@ export const GPU = {
 export const PROBLEM = { M: 8192, N: 8192, K: 8192 } as const;
 
 export const TILE = { M: 256, N: 256, blkK: 64, mmaK: 16, mmaM: 256, mmaN: 256 } as const;
+
+/** Warp roles of the kernel (one CTA = 8 warps; warp w runs on sub-partition w mod 4). */
+export const WARP_ROLES = [
+  "TMA producer",
+  "MMA issuer",
+  "tile scheduler",
+  "TMEM allocator",
+  "epilogue",
+  "epilogue",
+  "epilogue",
+  "epilogue",
+] as const;
 
 export const PIPE = { stages: 6, bytesPerElem: 2, smRows: 128 } as const;
 
@@ -65,11 +82,12 @@ export const hud = {
   gemm: `gemm · bf16 · M=N=K=${PROBLEM.M} · ${tflops.toFixed(2)} TFLOP`,
   tile: `tile (${SELECTED.row}, ${SELECTED.col}) of ${fmt(totalTiles)} · ${TILE.M}×${TILE.N}`,
   map: `${totalSMs} SMs · ${ctaPairs} CTA pairs · tile → pair ${selectedPair}`,
-  sm: `SMEM ${PIPE.stages} × ${stageKB} KB stages · TMEM ${GPU.tmemLanes} × ${GPU.tmemCols} × ${GPU.tmemBitsPerCell}b`,
+  sm: `${GPU.subPartitions} sub-partitions · SMEM ${PIPE.stages} × ${stageKB} KB stages · TMEM ${GPU.tmemLanes} × ${GPU.tmemCols} × ${GPU.tmemBitsPerCell}b`,
   kloop: (kb: number) =>
-    `k-block ${kb} / ${kBlocks} · stage ${((kb - 1) % PIPE.stages) + 1} / ${PIPE.stages} · ${stageKB} KB/stage`,
-  mma: `tcgen05.mma.cta_group::2 · ${TILE.mmaM}×${TILE.mmaN}×${TILE.mmaK} · TMEM cols 0–${accumCols - 1}`,
-  epilogue: `epilogue · FP32 → BF16 · TMEM cols ${tmemHalfCols}–${GPU.tmemCols - 1} → next tile`,
+    `TMA loads k-block ${kb} / ${kBlocks} → stage ${((kb - 1) % PIPE.stages) + 1} / ${PIPE.stages} · ${stageKB} KB per stage`,
+  mma: (kb: number) =>
+    `tcgen05.mma.cta_group::2 · ${TILE.mmaM}×${TILE.mmaN}×${TILE.mmaK} · k-block ${kb} / ${kBlocks} accumulated`,
+  epilogue: `epilogue · TMEM → registers → SMEM → HBM · FP32 → BF16 · next tile in cols ${tmemHalfCols}–${GPU.tmemCols - 1}`,
   done: (n: number) =>
     `${fmt(n)} / ${fmt(totalTiles)} tiles · ${n >= totalTiles ? "done" : "running"}`,
 };

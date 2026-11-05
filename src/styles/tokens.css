@@ -1,43 +1,29 @@
 :root {
-  /* Colour tokens (spec §7.4) — contrast verified by `bun run contrast` */
-  --bg: #0f1115;
-  --panel: #161a20;
-  --text: #e8eaed;
-  --text-muted: #a8b0ba;
-  --accent: #d98a4e;
-  --a: #4fd1e0;
-  --b: #e46fd0;
-  --border: #606a76;
-  --heat-0: #a8502f;
-  --heat-1: #f08a3c;
-  --heat-2: #ffc46b;
-  --heat-3: #fff1c9;
+  /* Soft neutral dark. Text is easy on the eyes rather than maximum-contrast. */
+  --bg: #0f1012;
+  --bg-2: #15161a;
+  --text: #e4e5e8;
+  --muted: #9b9fa8;
+  --faint: #6c7079;
+  --line: #24262c;
+  --accent: #f0a93a; /* accumulator amber */
+  --a: #6aa6ff; /* matrix A */
+  --b: #e062d0; /* matrix B */
+  --ok: #4ed08a; /* finished / written back */
+  --peer: #a78bfa;
 
-  /* Type scale (spec §7.3) */
-  --fs-h1: 34px;
-  --fs-h2: 24px;
-  --fs-h3: 20px;
-  --fs-body: 17px;
-  --fs-meta: 15px;
-
-  --space-panel: 16px;
-  --radius: 10px;
-  --header-h: 56px;
-  --content-w: 100%;
+  --header-h: 60px;
+  --stage-h: 0px;
+  --pad: clamp(22px, 5.5vw, 88px);
+  --col: min(35rem, 43vw);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-@media (min-width: 640px) {
+@media (max-width: 1024px) {
   :root {
-    --fs-h1: 44px;
-    --fs-h2: 28px;
-    --fs-h3: 22px;
-    --fs-body: 18px;
-    --space-panel: 24px;
-  }
-}
-
-@media (min-width: 1025px) {
-  :root {
-    --content-w: 45%;
+    --header-h: 54px;
+    --stage-h: clamp(300px, 46svh, 470px);
+    --col: 100%;
+    --pad: clamp(20px, 5vw, 40px);
   }
 }

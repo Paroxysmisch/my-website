@@ -1,7 +1,7 @@
 // Verifies the poster fallback paths: reduced motion, Save-Data, no WebGL2.
 import puppeteer from "puppeteer-core";
 
-const base = "http://localhost:4321/";
+const base = "http://localhost:4322/";
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/google-chrome",
   headless: true,

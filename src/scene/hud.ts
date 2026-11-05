@@ -6,6 +6,7 @@ export function createHud(el: HTMLElement) {
   let last = "";
   return (chapter: number) => {
     let text = "";
+    const t = U.uT.value;
     switch (chapter) {
       case 0:
         text = hud.gemm;
@@ -19,13 +20,11 @@ export function createHud(el: HTMLElement) {
       case 3:
         text = hud.sm;
         break;
-      case 4: {
-        const kb = Math.min(kBlocks, Math.max(1, Math.ceil(U.uK.value * kBlocks)));
-        text = hud.kloop(kb);
+      case 4:
+        text = hud.kloop(Math.min(kBlocks, Math.floor(t) + 1));
         break;
-      }
       case 5:
-        text = hud.mma;
+        text = hud.mma(Math.min(kBlocks, Math.max(0, Math.floor(t - 5))));
         break;
       case 6:
         text = hud.epilogue;

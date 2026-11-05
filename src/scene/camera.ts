@@ -1,7 +1,7 @@
 import { CatmullRomCurve3, type PerspectiveCamera, Vector3 } from "three";
 import { DETAIL_K, detail } from "./layout";
 
-export const FOV = 38;
+export const FOV = 28;
 const TAN = Math.tan((FOV * Math.PI) / 360);
 
 interface Stop {
@@ -12,29 +12,31 @@ interface Stop {
 }
 
 const k = DETAIL_K;
-/** Camera stops: one per "beat" (several chapters have two). Index = stop id used by the timeline. */
+/**
+ * Camera stops (index = stop id used by the timeline). `rx`/`ry` are the half-extents that must fit in the
+ * visible region of the stage, so the framing adapts to desktop (right column) and phone (stage above text).
+ */
 export const STOPS: Stop[] = [
-  { target: new Vector3(0, 0, 0), dir: new Vector3(-0.62, 0.5, 1), rx: 5.4, ry: 5.4 }, // 0 hero cube
-  { target: new Vector3(0, 0.1, 0), dir: new Vector3(-0.42, 0.3, 1), rx: 4.6, ry: 4.6 }, // 1 tiling
-  { target: new Vector3(0, 0, 0), dir: new Vector3(0.1, -0.3, 1), rx: 12.4, ry: 6.6 }, // 2 die
-  { target: detail(0, 5.5), dir: new Vector3(0.3, -0.14, 1), rx: 22 * k, ry: 16.5 * k }, // 3 SM pair
-  { target: detail(0, 8.5), dir: new Vector3(0.14, -0.38, 1), rx: 22 * k, ry: 13.5 * k }, // 4 k-loop
-  { target: detail(0, 1), dir: new Vector3(0.16, -0.3, 1), rx: 22 * k, ry: 11.5 * k }, // 5 MMA / TMEM
-  { target: detail(0, -9), dir: new Vector3(0.1, 0.12, 1), rx: 22 * k, ry: 15.5 * k }, // 6 lanes
-  { target: detail(0, 5.5), dir: new Vector3(0.22, -0.2, 1), rx: 22 * k, ry: 16.5 * k }, // 7 epilogue
-  { target: new Vector3(0, 2.7, 0), dir: new Vector3(0.05, -0.2, 1), rx: 12.8, ry: 9.2 }, // 8 finale
+  { target: new Vector3(0, 0, 1), dir: new Vector3(-0.1, 0.34, 1), rx: 7.2, ry: 7.0 }, // 0 hero: C = A·B
+  { target: new Vector3(0, 0, 1), dir: new Vector3(-0.06, 0.24, 1), rx: 6.8, ry: 6.7 }, // 1 tiling
+  { target: new Vector3(0, 1.4, 0), dir: new Vector3(0, 0.22, 1), rx: 8.4, ry: 7.7 }, // 2 die
+  { target: detail(0, -1, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 18.5 * k }, // 3 SM pair
+  { target: detail(0, -17.5, 0), dir: new Vector3(0.08, 0.2, 1), rx: 22.5 * k, ry: 15.5 * k }, // 4 k-loop (memory side)
+  { target: detail(0, 2, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 18 * k }, // 5 MMA
+  { target: detail(0, -7, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 27.5 * k }, // 6 epilogue
+  { target: new Vector3(0, 2.6, 0), dir: new Vector3(0.0, 0.16, 1), rx: 8.6, ry: 9.6 }, // 7 finale
 ];
 
-/** Where the 3D scene is framed inside the viewport (desktop: right 55%; phone: upper ~55%). */
+/** Where the 3D scene is framed inside the stage (desktop: right column; phone: whole stage). */
 export interface Region {
   x: number;
   y: number;
   w: number;
   h: number;
 }
-export function regionFor(W: number, H: number): Region {
-  if (W >= 1025) return { x: W * 0.46, y: 100, w: W * 0.54 - 16, h: H - 120 };
-  return { x: 0, y: 96, w: W, h: Math.max(160, H * 0.56 - 96) };
+export function regionFor(W: number, H: number, phone: boolean): Region {
+  if (phone) return { x: 6, y: 6, w: W - 12, h: H - 6 - 74 };
+  return { x: W * 0.45, y: 84, w: W * 0.55 - 28, h: H - 84 - 120 };
 }
 
 export function createCameraRig(camera: PerspectiveCamera) {
@@ -47,16 +49,15 @@ export function createCameraRig(camera: PerspectiveCamera) {
   const t = new Vector3();
   const l = new Vector3();
 
-  function layout(W: number, H: number) {
-    const r = regionFor(W, H);
+  function layout(W: number, H: number, phone: boolean) {
+    const r = regionFor(W, H, phone);
     const aspect = W / H;
     const wf = r.w / W;
     const hf = r.h / H;
     camera.aspect = aspect;
     camera.fov = FOV;
-    camera.near = 0.01;
+    camera.near = 0.005;
     camera.far = 200;
-    // shift the projection so the scene centre lands in the middle of the region
     const cx = r.x + r.w / 2;
     const cy = r.y + r.h / 2;
     camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);

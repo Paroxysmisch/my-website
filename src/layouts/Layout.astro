@@ -31,6 +31,12 @@ const { title, description, scene = false } = Astro.props;
     <slot />
     {scene && <script>import "../scene/loader";</script>}
     <script>
+      // Scroll-driven text motion only starts once the visitor scrolls: the first paint is fully static.
+      addEventListener(
+        "scroll",
+        () => document.documentElement.classList.add("motion"),
+        { once: true, passive: true },
+      );
       const io = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {

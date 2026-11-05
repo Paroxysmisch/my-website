@@ -1,6 +1,4 @@
 ---
-import { ramp } from "../lib/ramp";
-
 interface Props {
   metric: string;
   unit: string;
@@ -9,58 +7,21 @@ interface Props {
 }
 const { metric, unit, baselineLabel, series } = Astro.props;
 const max = Math.max(...series.map((s) => s.value));
-const ours = series.filter((s) => s.label !== baselineLabel).length;
-let oi = 0;
 ---
 <figure class="chart">
-  <figcaption class="mono muted">{metric}</figcaption>
+  <figcaption class="meta">{metric}</figcaption>
   <ul>
-    {series.map((s) => {
-      const base = s.label === baselineLabel;
-      const color = base ? "var(--text-muted)" : ramp(ours > 1 ? 0.35 + (0.65 * oi++) / (ours - 1) : 0.6);
-      return (
-        <li>
-          <span class="lbl">{s.label}</span>
-          <span class="track"><span class="bar" style={`width:${(s.value / max) * 100}%;background:${color}`} /></span>
-          <span class="num val">{s.value}{unit}</span>
-        </li>
-      );
-    })}
+    {series.map((s) => (
+      <li>
+        <span>{s.label}</span>
+        <span class="track">
+          <span
+            class="bar"
+            style={`width:${(s.value / max) * 100}%;background:${s.label === baselineLabel ? "var(--faint)" : "var(--accent)"}`}
+          ></span>
+        </span>
+        <span class="val">{s.value}{unit}</span>
+      </li>
+    ))}
   </ul>
 </figure>
-
-<style>
-  .chart {
-    display: grid;
-    gap: 8px;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-  }
-  li {
-    display: grid;
-    grid-template-columns: minmax(70px, 120px) 1fr auto;
-    align-items: center;
-    gap: 10px;
-  }
-  .lbl {
-    font-size: var(--fs-meta);
-  }
-  .track {
-    height: 14px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .bar {
-    display: block;
-    height: 100%;
-  }
-  .val {
-    min-width: 5ch;
-    text-align: right;
-  }
-</style>
