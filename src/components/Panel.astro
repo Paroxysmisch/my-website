@@ -1,0 +1,48 @@
+---
+interface Props {
+  title: string;
+  headingId?: string;
+  meta?: string;
+  class?: string;
+}
+const { title, headingId, meta, class: cls } = Astro.props;
+---
+<div class:list={["panel", cls]}>
+  <h2 id={headingId} class="panel-title">{title}</h2>
+  {meta && <span class="panel-meta mono">{meta}</span>}
+  <div class="panel-body"><slot /></div>
+</div>
+
+<style>
+  .panel {
+    position: relative;
+    margin-top: 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: calc(var(--space-panel) + 12px) var(--space-panel) var(--space-panel);
+  }
+  .panel-title {
+    position: absolute;
+    top: 0;
+    left: 16px;
+    max-width: calc(100% - 32px);
+    transform: translateY(-50%);
+    background: var(--bg);
+    padding: 0 10px;
+  }
+  .panel-meta {
+    position: absolute;
+    top: 0;
+    right: 16px;
+    transform: translateY(-50%);
+    background: var(--bg);
+    padding: 0 8px;
+    color: var(--text-muted);
+  }
+  .panel-body {
+    display: grid;
+    gap: 20px;
+    min-width: 0;
+  }
+</style>

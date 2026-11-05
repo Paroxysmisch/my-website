@@ -1,0 +1,14 @@
+{
+  "papers": 5,
+  "citations": 120,
+  "hIndex": 4,
+  "citationsByYear": [
+    { "year": 2020, "count": 4 },
+    { "year": 2021, "count": 11 },
+    { "year": 2022, "count": 18 },
+    { "year": 2023, "count": 24 },
+    { "year": 2024, "count": 31 },
+    { "year": 2025, "count": 32 }
+  ],
+  "updated": "2025-01-01"
+}

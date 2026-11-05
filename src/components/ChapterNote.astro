@@ -1,0 +1,14 @@
+---
+import { chapters } from "../scene/chapters";
+
+interface Props {
+  index: number;
+}
+const c = chapters[Astro.props.index];
+---
+{c && (
+  <div class="chapter-note">
+    <p class="stage">{`Kernel stage ${Astro.props.index + 1} of ${chapters.length} · ${c.stage}`}</p>
+    {c.subtitle && <p>{c.subtitle}</p>}
+  </div>
+)}

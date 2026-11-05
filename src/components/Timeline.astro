@@ -1,0 +1,166 @@
+---
+import type { Role } from "../lib/schemas";
+
+interface Props {
+  roles: Role[];
+}
+const { roles } = Astro.props;
+
+const toM = (s: string) => {
+  const [y, m] = s.split("-").map(Number) as [number, number];
+  return y * 12 + (m - 1);
+};
+const now = new Date();
+const nowM = now.getFullYear() * 12 + now.getMonth();
+const minM = Math.floor(Math.min(...roles.map((r) => toM(r.start))) / 12) * 12;
+const maxM = Math.ceil((Math.max(...roles.map((r) => (r.end ? toM(r.end) : nowM))) + 1) / 12) * 12;
+const span = maxM - minM;
+const pct = (m: number) => ((m - minM) / span) * 100;
+
+const laneOrder = ["Education", "Research", "Industry", "Teaching"] as const;
+const laneColor: Record<string, string> = {
+  Education: "var(--a)",
+  Research: "var(--accent)",
+  Industry: "var(--b)",
+  Teaching: "var(--heat-2)",
+};
+const lanes = laneOrder
+  .map((lane) => {
+    const items = roles
+      .filter((r) => r.lane === lane)
+      .sort((a, b) => toM(a.start) - toM(b.start))
+      .map((r) => ({ r, s: toM(r.start), e: r.end ? toM(r.end) : nowM }));
+    // pack overlapping bars into rows
+    const rowEnds: number[] = [];
+    const placed = items.map((it) => {
+      let row = rowEnds.findIndex((e) => e <= it.s);
+      if (row < 0) row = rowEnds.length;
+      rowEnds[row] = it.e + 1;
+      return { ...it, row };
+    });
+    return { lane, placed, rows: Math.max(1, rowEnds.length) };
+  })
+  .filter((l) => l.placed.length);
+
+const years: number[] = [];
+const step = span / 12 > 8 ? 2 : 1;
+for (let y = minM / 12; y <= maxM / 12; y += step) years.push(y);
+
+const fmt = (s: string) =>
+  new Date(`${s}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+const sorted = [...roles].sort((a, b) => b.start.localeCompare(a.start));
+---
+<div class="timeline">
+  <div class="scroller" role="region" aria-label="Experience timeline" tabindex="0">
+    <div class="chart" style={`--span:${span}`}>
+      {lanes.map((l) => (
+        <div class="lane" style={`--rows:${l.rows}`}>
+          <span class="lane-name mono">{l.lane}</span>
+          <div class="lane-track">
+            {l.placed.map((p) => (
+              <div
+                class="bar"
+                style={`left:${pct(p.s)}%;width:${pct(p.e + 1) - pct(p.s)}%;top:calc(${p.row} * 100% / ${l.rows});height:calc(100% / ${l.rows} - 4px);--lane:${laneColor[l.lane]}`}
+              >
+                <span class="bar-text">{p.r.role} · {p.r.org}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div class="axis">
+        <span class="lane-name"></span>
+        <div class="ticks num">
+          {years.map((y) => <span style={`left:${pct(y * 12)}%`}>{y}</span>)}
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="list">
+    {sorted.map((r) => (
+      <li>
+        <h3>{r.role}, {r.org}</h3>
+        <p class="mono muted">{r.lane} · {fmt(r.start)} – {r.end ? fmt(r.end) : "present"}</p>
+        <p>{r.description}</p>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .timeline {
+    display: grid;
+    gap: 24px;
+    min-width: 0;
+  }
+  .scroller {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .chart {
+    min-width: 640px;
+    display: grid;
+    gap: 8px;
+  }
+  .lane,
+  .axis {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .lane-name {
+    color: var(--text-muted);
+    align-self: center;
+  }
+  .lane-track {
+    position: relative;
+    height: calc(var(--rows) * 48px);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .bar {
+    position: absolute;
+    background: var(--panel);
+    border: 2px solid var(--lane);
+    border-radius: 5px;
+    margin-top: 2px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    min-width: 8px;
+  }
+  .bar-text {
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .ticks {
+    position: relative;
+    height: 24px;
+  }
+  .ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .ticks span:first-child {
+    transform: none;
+  }
+  .list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .list li {
+    display: grid;
+    gap: 2px;
+  }
+</style>

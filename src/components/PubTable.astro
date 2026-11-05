@@ -1,0 +1,134 @@
+---
+import type { Pub } from "../lib/pubs";
+
+interface Props {
+  pubs: Pub[];
+  owner?: string;
+}
+const { pubs, owner } = Astro.props;
+const isOwner = (a: string) => !!owner && a.toLowerCase() === owner.toLowerCase();
+const bibHref = (p: Pub) => `data:text/plain;charset=utf-8,${encodeURIComponent(`${p.bibtex}\n`)}`;
+---
+<div class="scroller" role="region" aria-label="Publications table" tabindex="0">
+  <table>
+    <thead>
+      <tr><th>Year</th><th>Venue</th><th>Title</th><th>Authors</th><th>Links</th></tr>
+    </thead>
+    <tbody>
+      {pubs.map((p) => (
+        <tr>
+          <td class="num year">{p.year}</td>
+          <td class="venue"><span class="tag">{p.venue}</span></td>
+          <td class="title">{p.title}</td>
+          <td class="authors">
+            {p.authors.map((a, i) => (
+              <>
+                {isOwner(a) ? <strong>{a}</strong> : a}
+                {i < p.authors.length - 1 ? ", " : ""}
+              </>
+            ))}
+          </td>
+          <td class="links">
+            {p.pdf && <a class="link-btn" href={p.pdf}>PDF</a>}
+            <a class="link-btn" href={bibHref(p)} download={`${p.key}.bib`}>BibTeX</a>
+            {p.code && <a class="link-btn" href={p.code}>Code</a>}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .scroller {
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 0;
+  }
+  th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 10px;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:hover,
+  tbody tr:focus-within {
+    background: var(--bg);
+  }
+  .year,
+  .venue {
+    white-space: nowrap;
+  }
+  .authors {
+    color: var(--text-muted);
+  }
+  .authors :global(strong) {
+    color: var(--text);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .links .link-btn {
+    padding: 0 10px;
+  }
+  @media (max-width: 1024px) {
+    th:nth-child(4),
+    td.authors {
+      min-width: 160px;
+    }
+    td.title {
+      min-width: 200px;
+    }
+  }
+  @media (max-width: 639px) {
+    .scroller {
+      overflow: visible;
+    }
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    table,
+    tbody {
+      display: block;
+    }
+    tr {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      display: block;
+      padding: 0;
+      border: 0;
+    }
+    td.title,
+    td.authors,
+    td.links {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+    td.year {
+      align-self: center;
+    }
+  }
+</style>

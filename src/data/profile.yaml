@@ -1,0 +1,21 @@
+# PLACEHOLDER CONTENT — replace with real information.
+name: "[Your Name]"
+bibName: "Your Name"          # how you appear in pubs.bib author lists (gets bolded)
+title: "PhD Candidate, Computer Architecture"
+affiliation: "[Your University], [Department]"
+advisor: "[Advisor Name]"
+tagline: "[One-sentence description] I work on GPUs and specialised accelerators, the software that targets them, and machine learning that automates accelerator design."
+bioMarkdown: |
+  This is placeholder text for a short bio. I am a PhD student working on GPU and accelerator architecture, with a focus on how software maps onto specialised hardware.
+
+  A second placeholder paragraph describes research interests: compilers for tensor accelerators, performance modelling, and using machine learning to explore accelerator design spaces.
+
+  A third placeholder paragraph covers what I did before the PhD and what I am looking for next.
+email: "you@example.com"
+links:
+  github: "https://github.com/example"
+  scholar: "https://scholar.google.com/"
+  orcid: "https://orcid.org/0000-0000-0000-0000"
+  linkedin: "https://www.linkedin.com/in/example"
+  cv: "/cv.pdf"
+# openalexAuthorId: "A0000000000"   # optional: enables live citation stats at build time

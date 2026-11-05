@@ -1,0 +1,35 @@
+# PLACEHOLDER CONTENT. lane: Education | Research | Industry | Teaching. end omitted = ongoing.
+- lane: Education
+  role: "PhD, Computer Science"
+  org: "[Your University]"
+  start: "2021-09"
+  description: "Placeholder. Thesis on software and ML-driven design for GPU-like accelerators."
+- lane: Education
+  role: "BSc, Computer Engineering"
+  org: "[Previous University]"
+  start: "2017-09"
+  end: "2021-06"
+  description: "Placeholder. Graduated with honours."
+- lane: Research
+  role: "Graduate Research Assistant"
+  org: "[Your Lab]"
+  start: "2021-09"
+  description: "Placeholder. Research on accelerator compilers and design-space exploration."
+- lane: Industry
+  role: "Research Intern"
+  org: "[Company Name]"
+  start: "2023-06"
+  end: "2023-09"
+  description: "Placeholder. Worked on GPU kernel performance modelling."
+- lane: Industry
+  role: "Software Engineering Intern"
+  org: "[Another Company]"
+  start: "2020-06"
+  end: "2020-09"
+  description: "Placeholder. Built tooling for hardware verification."
+- lane: Teaching
+  role: "Teaching Assistant, Computer Architecture"
+  org: "[Your University]"
+  start: "2022-01"
+  end: "2023-05"
+  description: "Placeholder. Led weekly sections and designed two lab assignments."

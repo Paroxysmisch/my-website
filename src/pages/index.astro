@@ -1,0 +1,268 @@
+---
+import { getCollection } from "astro:content";
+import ChapterNote from "../components/ChapterNote.astro";
+import CopyButton from "../components/CopyButton.astro";
+import DotGraph from "../components/DotGraph.astro";
+import Meter from "../components/Meter.astro";
+import Panel from "../components/Panel.astro";
+import PubTable from "../components/PubTable.astro";
+import ResultChart from "../components/ResultChart.astro";
+import Timeline from "../components/Timeline.astro";
+import Layout from "../layouts/Layout.astro";
+import { experience, getStats, news, profile, research } from "../lib/data";
+import { loadPubs } from "../lib/pubs";
+
+const pubs = loadPubs();
+const projects = (await getCollection("projects")).sort((a, b) => b.data.year - a.data.year);
+const { stats, source } = await getStats();
+
+const pubKeys = new Set(pubs.map((p) => p.key));
+const projectIds = new Set(projects.map((p) => p.id));
+for (const t of research) {
+  for (const k of t.relatedPubKeys)
+    if (!pubKeys.has(k)) throw new Error(`research.yaml: theme "${t.id}" references unknown pub "${k}"`);
+  for (const id of t.relatedProjectIds)
+    if (!projectIds.has(id)) throw new Error(`research.yaml: theme "${t.id}" references unknown project "${id}"`);
+}
+const totalItems = pubs.length + projects.length;
+
+const paragraphs = profile.bioMarkdown.trim().split(/\n\s*\n/);
+const fmtDate = (d: string) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+const nav = [
+  ["about", "About"],
+  ["research", "Research"],
+  ["projects", "Projects"],
+  ["publications", "Publications"],
+  ["experience", "Experience"],
+  ["news", "News"],
+  ["contact", "Contact"],
+] as const;
+const year = new Date().getFullYear();
+---
+<Layout title={`${profile.name} — ${profile.title}`} description={profile.tagline} scene>
+  <img class="scene-poster" alt="" aria-hidden="true" width="1280" height="800" fetchpriority="low" decoding="async" hidden />
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="hud" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <nav aria-label="Sections">
+      <a class="brand" href="#hero">{profile.name}</a>
+      {nav.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
+    </nav>
+  </header>
+
+  <main id="main">
+    <section id="hero" class="chapter" data-chapter="0" aria-labelledby="name">
+      <div class="col">
+        <div class="hero-box">
+          <ChapterNote index={0} />
+          <h1 id="name">{profile.name}</h1>
+          <p class="lead">{profile.tagline}</p>
+          <p class="mono muted">{profile.title} · {profile.affiliation}</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="chapter" data-chapter="1" aria-labelledby="about-h">
+      <div class="col">
+        <div class="reveal">
+          <Panel title="About" headingId="about-h">
+            <ChapterNote index={1} />
+            {paragraphs.map((p) => <p>{p}</p>)}
+            <dl class="facts">
+              <div><dt class="mono muted">Affiliation</dt><dd>{profile.affiliation}</dd></div>
+              {profile.advisor && <div><dt class="mono muted">Advisor</dt><dd>{profile.advisor}</dd></div>}
+            </dl>
+          </Panel>
+        </div>
+        <div class="reveal">
+          <Panel title="Stats" headingId="stats-h" meta={source}>
+            <dl class="readout">
+              <div><dt class="mono muted">Papers</dt><dd class="num">{stats.papers}</dd></div>
+              <div><dt class="mono muted">Citations</dt><dd class="num">{stats.citations}</dd></div>
+              <div><dt class="mono muted">h-index</dt><dd class="num">{stats.hIndex}</dd></div>
+            </dl>
+            <DotGraph
+              title="Citations per year"
+              unit="citations"
+              data={stats.citationsByYear.slice(-6).map((c) => ({ label: String(c.year), value: c.count }))}
+            />
+          </Panel>
+        </div>
+      </div>
+    </section>
+
+    <section id="research" class="chapter" data-chapter="2" aria-labelledby="research-h">
+      <div class="col reveal">
+        <Panel title="Research" headingId="research-h">
+          <ChapterNote index={2} />
+          {research.map((t) => {
+            const papers = t.relatedPubKeys.length;
+            const projs = t.relatedProjectIds.length;
+            return (
+              <article class="card">
+                <h3>{t.title}</h3>
+                <p>{t.summary}</p>
+                <Meter
+                  label={`${t.title}: papers and projects`}
+                  value={papers + projs}
+                  max={totalItems}
+                  cells={totalItems}
+                />
+                <p class="mono muted">{plural(papers, "paper")} · {plural(projs, "project")}</p>
+              </article>
+            );
+          })}
+        </Panel>
+      </div>
+    </section>
+
+    <section id="projects" class="chapter" data-chapter="3" aria-labelledby="projects-h">
+      <div class="col reveal">
+        <Panel title="Projects" headingId="projects-h">
+          <ChapterNote index={3} />
+          {projects.map((p) => (
+            <article class="card">
+              <h3>{p.data.title}</h3>
+              <p class="mono muted">{p.data.year}</p>
+              <p>{p.data.summary}</p>
+              {p.data.result && <ResultChart {...p.data.result} />}
+              <div class="tags">{p.data.tags.map((t) => <span class="tag">{t}</span>)}</div>
+              <div class="links">
+                {p.data.links.paper && <a class="link-btn" href={p.data.links.paper}>Paper</a>}
+                {p.data.links.code && <a class="link-btn" href={p.data.links.code}>Code</a>}
+                {p.data.links.demo && <a class="link-btn" href={p.data.links.demo}>Demo</a>}
+              </div>
+            </article>
+          ))}
+        </Panel>
+      </div>
+    </section>
+
+    <section id="publications" class="chapter wide" data-chapter="4" aria-labelledby="pubs-h">
+      <div class="col reveal">
+        <Panel title="Publications" headingId="pubs-h" meta={`${pubs.length} entries`}>
+          <ChapterNote index={4} />
+          <PubTable pubs={pubs} owner={profile.bibName} />
+        </Panel>
+      </div>
+    </section>
+
+    <section id="experience" class="chapter" data-chapter="5" aria-labelledby="exp-h">
+      <div class="col reveal">
+        <Panel title="Experience" headingId="exp-h">
+          <ChapterNote index={5} />
+          <Timeline roles={experience} />
+        </Panel>
+      </div>
+    </section>
+
+    <section id="news" class="chapter" data-chapter="6" aria-labelledby="news-h">
+      <div class="col reveal">
+        <Panel title="News, talks & awards" headingId="news-h">
+          <ChapterNote index={6} />
+          <ul class="news">
+            {news.slice(0, 8).map((n) => (
+              <li>
+                <time class="mono muted" datetime={n.date}>{fmtDate(n.date)}</time>
+                <span>{n.text}{n.link && <> <a href={n.link}>Link</a></>}</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      </div>
+    </section>
+
+    <section id="contact" class="chapter" data-chapter="7" aria-labelledby="contact-h">
+      <div class="col reveal">
+        <Panel title="Contact" headingId="contact-h">
+          <p>
+            Email <a href={`mailto:${profile.email}`}>{profile.email}</a>
+          </p>
+          <div class="links big">
+            <CopyButton text={profile.email} label="Copy email" />
+            {profile.links.github && <a class="link-btn" href={profile.links.github}>GitHub</a>}
+            {profile.links.scholar && <a class="link-btn" href={profile.links.scholar}>Google Scholar</a>}
+            {profile.links.orcid && <a class="link-btn" href={profile.links.orcid}>ORCID</a>}
+            {profile.links.linkedin && <a class="link-btn" href={profile.links.linkedin}>LinkedIn</a>}
+            {profile.links.cv && <a class="link-btn" href={profile.links.cv}>CV (PDF)</a>}
+          </div>
+        </Panel>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© {year} {profile.name}</span>
+  </footer>
+</Layout>
+
+<style is:global>
+  .hero-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-panel);
+    display: grid;
+    gap: 16px;
+  }
+  .lead {
+    font-size: calc(var(--fs-body) + 2px);
+  }
+  .facts {
+    display: grid;
+    gap: 10px;
+  }
+  .facts dt,
+  .readout dt {
+    font-size: var(--fs-meta);
+  }
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .readout dd {
+    font-size: var(--fs-h2);
+    color: var(--heat-2);
+    font-weight: 600;
+  }
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+  }
+  .news {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .news li {
+    display: grid;
+    gap: 2px;
+  }
+  @media (min-width: 640px) {
+    .news li {
+      grid-template-columns: 130px 1fr;
+      gap: 16px;
+    }
+  }
+  .links.big .link-btn,
+  .links.big .btn {
+    min-height: 48px;
+    padding: 0 18px;
+  }
+  /* Publications table needs room: wider column on desktop */
+  @media (min-width: 1025px) {
+    .chapter.wide > .col {
+      width: min(62%, 980px);
+    }
+  }
+</style>

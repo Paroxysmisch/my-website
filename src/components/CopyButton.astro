@@ -1,0 +1,28 @@
+---
+interface Props {
+  text: string;
+  label: string;
+}
+const { text, label } = Astro.props;
+---
+<button type="button" class="btn copy" data-copy={text} hidden>{label}</button>
+<span class="sr-only" role="status" aria-live="polite" data-copy-status></span>
+<script>
+  for (const btn of document.querySelectorAll<HTMLButtonElement>("button[data-copy]")) {
+    btn.hidden = false;
+    btn.addEventListener("click", async () => {
+      const status = btn.nextElementSibling as HTMLElement | null;
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? "");
+        btn.textContent = "Copied";
+        if (status) status.textContent = "Copied to clipboard";
+      } catch {
+        btn.textContent = "Copy failed";
+      }
+      setTimeout(() => {
+        btn.textContent = original;
+      }, 1800);
+    });
+  }
+</script>

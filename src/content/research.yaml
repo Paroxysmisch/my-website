@@ -1,0 +1,16 @@
+# PLACEHOLDER CONTENT. Meter value = relatedProjectIds + relatedPubKeys counts.
+- id: accel-software
+  title: "Software for specialised accelerators"
+  summary: "Placeholder summary. Compilers, kernels and runtimes that map tensor programs onto accelerators and GPU tensor cores. Describe the problem, the approach, and what makes it hard in two to four sentences."
+  relatedProjectIds: [placeholder-compiler]
+  relatedPubKeys: [placeholder2025a, placeholder2024a]
+- id: ml-design
+  title: "ML-driven accelerator design"
+  summary: "Placeholder summary. Learning-based search and surrogate models that automate exploration of accelerator microarchitecture and mapping design spaces."
+  relatedProjectIds: [placeholder-dse]
+  relatedPubKeys: [placeholder2025b, placeholder2023a]
+- id: gpu-arch
+  title: "GPU architecture and performance"
+  summary: "Placeholder summary. Characterising and modelling GPU memory systems and tensor pipelines to explain where performance goes."
+  relatedProjectIds: [placeholder-model]
+  relatedPubKeys: [placeholder2024a, placeholder2023a, placeholder2022a]
