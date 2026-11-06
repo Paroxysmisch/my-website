@@ -124,17 +124,17 @@ const { title, description, scene = false } = Astro.props;
             clearTimeout(idle);
             idle = window.setTimeout(() => {
               const dy = scrollY - startY;
-              const from = startY;
               startY = -1;
               if (Math.abs(dy) < 90 || peak < 1.4) return;
               const ts = tops();
               const max = document.documentElement.scrollHeight - innerHeight;
-              let idx = -1;
-              if (dy > 0) idx = ts.findIndex((y) => y > from + 40);
-              else idx = ts.findLastIndex((y) => y < from - 40);
-              if (idx < 0) return;
+              // gravitate to the section top nearest to where the scroll ran out of energy
+              let idx = 0;
+              ts.forEach((y, k) => {
+                if (Math.abs(y - scrollY) < Math.abs((ts[idx] as number) - scrollY)) idx = k;
+              });
               const target = Math.min(ts[idx] as number, max);
-              if (Math.abs(target - scrollY) < 24) return;
+              if (Math.abs(target - scrollY) > innerHeight * 0.55 || Math.abs(target - scrollY) < 24) return;
               glide(target, idx);
             }, 140);
           },
