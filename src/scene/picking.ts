@@ -30,6 +30,32 @@ function boxCorners(h: Hotspot): Vector3[] {
   return out;
 }
 
+/** Convex hull (monotone chain) of 2D points. */
+function hull(p: [number, number][]): [number, number][] {
+  const pts = [...p].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o: [number, number], a: [number, number], b: [number, number]) =>
+    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo: [number, number][] = [];
+  for (const q of pts) {
+    while (
+      lo.length >= 2 &&
+      cross(lo[lo.length - 2] as [number, number], lo[lo.length - 1] as [number, number], q) <= 0
+    )
+      lo.pop();
+    lo.push(q);
+  }
+  const up: [number, number][] = [];
+  for (const q of [...pts].reverse()) {
+    while (
+      up.length >= 2 &&
+      cross(up[up.length - 2] as [number, number], up[up.length - 1] as [number, number], q) <= 0
+    )
+      up.pop();
+    up.push(q);
+  }
+  return [...lo.slice(0, -1), ...up.slice(0, -1)];
+}
+
 /** Hover / tap tooltips for the 3D scene: CPU ray picking against a few hundred boxes + the matrix planes. */
 export function createPicker(opts: {
   stage: HTMLElement;
@@ -49,8 +75,12 @@ export function createPicker(opts: {
   tip.id = "tip";
   tip.setAttribute("role", "tooltip");
   document.body.appendChild(tip);
-  const hl = document.createElement("div");
-  hl.className = "scene-hl";
+  // outline: the convex hull of the part's projected corners, so it follows the perspective of the diagram
+  const NS = "http://www.w3.org/2000/svg";
+  const hl = document.createElementNS(NS, "svg");
+  hl.setAttribute("class", "scene-hl");
+  const poly = document.createElementNS(NS, "polygon");
+  hl.appendChild(poly);
   stage.appendChild(hl);
   let current: Hit | null = null;
   let hideTimer = 0;
@@ -195,21 +225,19 @@ export function createPicker(opts: {
     // outline
     const r = stage.getBoundingClientRect();
     h.group.updateMatrixWorld();
-    let x0 = Infinity;
-    let y0 = Infinity;
-    let x1 = -Infinity;
-    let y1 = -Infinity;
+    const pts: [number, number][] = [];
     const v = new Vector3();
     for (const c of h.corners) {
       v.copy(c).applyMatrix4(h.group.matrixWorld).project(camera);
-      const px = (v.x * 0.5 + 0.5) * r.width;
-      const py = (-v.y * 0.5 + 0.5) * r.height;
-      x0 = Math.min(x0, px);
-      y0 = Math.min(y0, py);
-      x1 = Math.max(x1, px);
-      y1 = Math.max(y1, py);
+      pts.push([(v.x * 0.5 + 0.5) * r.width, (-v.y * 0.5 + 0.5) * r.height]);
     }
-    hl.style.cssText = `opacity:1;left:${x0 - 2}px;top:${y0 - 2}px;width:${x1 - x0 + 4}px;height:${y1 - y0 + 4}px`;
+    poly.setAttribute(
+      "points",
+      hull(pts)
+        .map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+        .join(" "),
+    );
+    hl.style.opacity = "1";
     document.documentElement.classList.add("scene-hover");
   }
   function hide() {

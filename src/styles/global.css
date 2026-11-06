@@ -844,12 +844,20 @@ a.mail {
 }
 .scene-hl {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
-  border: 1.5px solid var(--accent);
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4), 0 0 16px color-mix(in srgb, var(--accent) 45%, transparent);
   opacity: 0;
   transition: opacity 0.1s;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+.scene-hl polygon {
+  fill: color-mix(in srgb, var(--accent) 10%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
 html.scene-hover {
   cursor: help;
