@@ -37,6 +37,78 @@ const { title, description, scene = false } = Astro.props;
         () => document.documentElement.classList.add("motion"),
         { once: true, passive: true },
       );
+
+      // Section snapping: a fast flick settles on the next/previous section; slow scrolling stays free.
+      {
+        const secs = [...document.querySelectorAll<HTMLElement>("section[data-chapter]")];
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let startY = -1;
+        let lastY = scrollY;
+        let lastT = performance.now();
+        let peak = 0;
+        let idle = 0;
+        let ignoreUntil = 0;
+        let snapping = false;
+        let snapEnd = 0;
+        const targets = () => secs.map((el) => Math.max(0, Math.round(el.getBoundingClientRect().top + scrollY)));
+        document.addEventListener("click", (e) => {
+          if ((e.target as Element).closest?.('a[href^="#"]')) ignoreUntil = performance.now() + 1500;
+        });
+        addEventListener("keydown", () => {
+          ignoreUntil = performance.now() + 800;
+        });
+        addEventListener(
+          "scroll",
+          () => {
+            const now = performance.now();
+            if (snapping) {
+              clearTimeout(snapEnd);
+              snapEnd = window.setTimeout(() => {
+                snapping = false;
+                startY = -1;
+                lastY = scrollY;
+              }, 220);
+              return;
+            }
+            if (reduce || now < ignoreUntil) {
+              startY = -1;
+              return;
+            }
+            if (startY < 0) {
+              startY = lastY;
+              peak = 0;
+            }
+            const dt = Math.max(1, now - lastT);
+            peak = Math.max(peak, Math.abs(scrollY - lastY) / dt);
+            lastY = scrollY;
+            lastT = now;
+            clearTimeout(idle);
+            idle = window.setTimeout(() => {
+              const dy = scrollY - startY;
+              const from = startY;
+              startY = -1;
+              if (Math.abs(dy) < 90 || peak < 1.4) return;
+              const ts = targets();
+              const max = document.documentElement.scrollHeight - innerHeight;
+              let target: number | undefined;
+              if (dy > 0) target = ts.find((y) => y > from + 40);
+              else target = [...ts].reverse().find((y) => y < from - 40);
+              if (target === undefined) return;
+              target = Math.min(target, max);
+              if (Math.abs(target - scrollY) < 24) return;
+              snapping = true;
+              clearTimeout(snapEnd);
+              snapEnd = window.setTimeout(() => {
+                snapping = false;
+                startY = -1;
+                lastY = scrollY;
+              }, 1400);
+              scrollTo({ top: target, behavior: "smooth" });
+            }, 130);
+          },
+          { passive: true },
+        );
+      }
       const io = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {

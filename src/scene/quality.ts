@@ -23,7 +23,9 @@ export function detectTier(canvas: HTMLCanvasElement): {
   }
   let gl: WebGL2RenderingContext | null = null;
   try {
-    gl = canvas.getContext("webgl2", { antialias: false, powerPreference: "high-performance" });
+    // MSAA everywhere except on clearly weak devices (the frame-time watchdog still lowers DPR)
+    const weak = (nav.hardwareConcurrency ?? 4) <= 2 || (nav.deviceMemory ?? 4) <= 2;
+    gl = canvas.getContext("webgl2", { antialias: !weak, powerPreference: "high-performance" });
   } catch {
     gl = null;
   }

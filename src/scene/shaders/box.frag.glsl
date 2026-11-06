@@ -35,8 +35,11 @@ void main() {
   vec3 d = (0.5 - abs(vP)) * vS;
   float e = 0.0;
   if (edgeW > 0.0) {
-    float nx = step(d.x, edgeW), ny = step(d.y, edgeW), nz = step(d.z, edgeW);
-    e = step(1.5, nx + ny + nz);
+    vec3 fwd = max(fwidth(d), vec3(1e-5));
+    float nx = 1.0 - smoothstep(edgeW - fwd.x, edgeW + fwd.x, d.x);
+    float ny = 1.0 - smoothstep(edgeW - fwd.y, edgeW + fwd.y, d.y);
+    float nz = 1.0 - smoothstep(edgeW - fwd.z, edgeW + fwd.z, d.z);
+    e = clamp(nx * ny + ny * nz + nx * nz, 0.0, 1.0);
   }
   vec3 edgeCol = min(col * 1.55 + 0.06, vec3(1.0));
   float edgeAmt = 0.8;

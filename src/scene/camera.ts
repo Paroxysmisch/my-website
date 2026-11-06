@@ -21,7 +21,7 @@ export const STOPS: Stop[] = [
   { target: new Vector3(0, 0, 1), dir: new Vector3(-0.06, 0.24, 1), rx: 6.8, ry: 6.7 }, // 1 tiling
   { target: new Vector3(0, 1.4, 0), dir: new Vector3(0, 0.22, 1), rx: 8.4, ry: 7.7 }, // 2 die
   { target: detail(0, -1, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 18.5 * k }, // 3 SM pair
-  { target: detail(0, -17.5, 0), dir: new Vector3(0.08, 0.2, 1), rx: 22.5 * k, ry: 15.5 * k }, // 4 k-loop (memory side)
+  { target: detail(0, -17.5, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 15.5 * k }, // 4 k-loop (memory side)
   { target: detail(0, 2, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 18 * k }, // 5 MMA
   { target: detail(0, -7, 0), dir: new Vector3(0.1, 0.16, 1), rx: 22.5 * k, ry: 27.5 * k }, // 6 epilogue
   { target: new Vector3(0, 2.6, 0), dir: new Vector3(0.0, 0.16, 1), rx: 8.6, ry: 9.6 }, // 7 finale
@@ -39,15 +39,20 @@ export function regionFor(W: number, H: number, phone: boolean): Region {
   return { x: W * 0.45, y: 84, w: W * 0.55 - 28, h: H - 84 - 120 };
 }
 
+const smooth = (f: number) => f * f * (3 - 2 * f);
+
+/**
+ * Camera rig: explicit segment-to-segment interpolation (no spline, so no overshoot or sideways wobble).
+ * Distance and direction ease together; the look-at target lags when zooming out (a true "pull back")
+ * and leads when zooming in (fly to the target, then dive).
+ */
 export function createCameraRig(camera: PerspectiveCamera) {
-  let targets: CatmullRomCurve3;
-  let dirs: CatmullRomCurve3;
-  let dist: CatmullRomCurve3;
   const n = STOPS.length;
+  let logD: number[] = [];
+  const dirs = STOPS.map((s) => s.dir.clone().normalize());
   const p = new Vector3();
   const d = new Vector3();
   const t = new Vector3();
-  const l = new Vector3();
 
   function layout(W: number, H: number, phone: boolean) {
     const r = regionFor(W, H, phone);
@@ -62,34 +67,25 @@ export function createCameraRig(camera: PerspectiveCamera) {
     const cy = r.y + r.h / 2;
     camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
     camera.updateProjectionMatrix();
-    const dists = STOPS.map((s) => Math.max(s.ry / (TAN * hf), s.rx / (TAN * wf * aspect)));
-    targets = new CatmullRomCurve3(
-      STOPS.map((s) => s.target.clone()),
-      false,
-      "catmullrom",
-      0.5,
-    );
-    dirs = new CatmullRomCurve3(
-      STOPS.map((s) => s.dir.clone().normalize()),
-      false,
-      "catmullrom",
-      0.5,
-    );
-    dist = new CatmullRomCurve3(
-      dists.map((x) => new Vector3(Math.log(x), 0, 0)),
-      false,
-      "catmullrom",
-      0.5,
-    );
+    logD = STOPS.map((s) => Math.log(Math.max(s.ry / (TAN * hf), s.rx / (TAN * wf * aspect))));
   }
 
   /** stop: continuous stop index in [0, n-1] */
   function update(stop: number) {
-    const u = Math.min(1, Math.max(0, stop / (n - 1)));
-    targets.getPoint(u, t);
-    dirs.getPoint(u, d).normalize();
-    dist.getPoint(u, l);
-    p.copy(t).addScaledVector(d, Math.exp(l.x));
+    const s = Math.min(n - 1, Math.max(0, stop));
+    const i = Math.min(n - 2, Math.floor(s));
+    const f = s - i;
+    const a = STOPS[i] as Stop;
+    const b = STOPS[i + 1] as Stop;
+    const la = logD[i] as number;
+    const lb = logD[i + 1] as number;
+    const dz = lb - la;
+    const e = smooth(f);
+    // target easing: lag on zoom-out, lead on zoom-in, plain otherwise
+    const te = dz > 0.35 ? e * e * e : dz < -0.35 ? 1 - (1 - e) ** 3 : e;
+    t.lerpVectors(a.target, b.target, te);
+    d.lerpVectors(dirs[i] as Vector3, dirs[i + 1] as Vector3, e).normalize();
+    p.copy(t).addScaledVector(d, Math.exp(la + dz * e));
     camera.position.copy(p);
     camera.lookAt(t);
   }

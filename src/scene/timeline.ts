@@ -24,13 +24,13 @@ export function buildTimeline() {
   };
 
   // ── Camera (stop index along the rig, see camera.ts) ──
-  to(S, { camT: 1 }, 0.75, 0.45);
-  to(S, { camT: 2 }, 2.0, 0.5);
-  to(S, { camT: 3 }, 2.85, 0.5);
-  to(S, { camT: 4 }, 3.98, 0.27);
-  to(S, { camT: 5 }, 4.95, 0.3);
-  to(S, { camT: 6 }, 5.85, 0.25);
-  to(S, { camT: 7 }, 6.95, 0.45);
+  to(S, { camT: 1 }, 0.75, 0.45, "none");
+  to(S, { camT: 2 }, 2.0, 0.5, "none");
+  to(S, { camT: 3 }, 2.85, 0.5, "none");
+  to(S, { camT: 4 }, 3.98, 0.27, "none");
+  to(S, { camT: 5 }, 4.95, 0.3, "none");
+  to(S, { camT: 6 }, 5.85, 0.25, "none");
+  to(S, { camT: 7 }, 6.95, 0.45, "none");
 
   // ── 1 · tiling: C splits into 32×32 tiles; one tile + its A row strip and B column strip stay lit ──
   to(U.uBand, { value: 0 }, 0.92, 0.2);

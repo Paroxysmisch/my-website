@@ -11,7 +11,8 @@ uniform float uAssign;
 uniform float uGroup[10];
 varying vec3 vColor;
 varying float vAlpha;
-varying vec2 vUv; // x: 0 at the head .. 1 at the tail, y: -1..1 across
+varying vec2 vUv; // x: distance from the head in particle widths (negative = ahead of it), y: -1..1 across
+varying float vTail; // 0 at the head .. 1 at the end of the tail
 
 float slotC(float idx) { return mod(uT - idx + 6.0 * 40.0, 6.0); }
 float rnd8(float n, float salt) { return floor(fract(sin(n * 12.9898 + salt * 78.233) * 43758.5453) * 8.0); }
@@ -107,11 +108,14 @@ void main() {
   vec2 dir = L > 1e-7 ? d / L : vec2(1.0, 0.0);
   vec2 perp = vec2(-dir.y, dir.x);
   float len = max(L, w * 1.3);
+  float pad = w * 1.6;                       // room ahead of the head so its glow is never clipped
   float u = position.x + 0.5;
+  float along = u * (len + pad) - pad;       // from head: negative ahead, positive toward the tail
   vec4 mv = mh;
-  mv.xy += dir * (u * len - w * 0.35) + perp * position.y * w;
+  mv.xy += dir * along + perp * position.y * w * 1.6;
   gl_Position = projectionMatrix * mv;
   vColor = aColor;
   vAlpha = a;
-  vUv = vec2(u, position.y * 2.0);
+  vUv = vec2(along / w, position.y * 3.2);
+  vTail = clamp(along / len, 0.0, 1.0);
 }

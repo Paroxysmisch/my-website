@@ -162,7 +162,7 @@ export function createDetailFlows(parent: Group) {
           color: hex,
           type: 1,
           group: GROUP.tma,
-          size: 1.5,
+          size: 0.83,
           w: i,
           arc: 3.5,
         });
@@ -177,7 +177,7 @@ export function createDetailFlows(parent: Group) {
           color: A_HEX,
           type: 2,
           group: GROUP.mmaIn,
-          size: 1.2,
+          size: 0.66,
           w: i,
           arc: 2,
         });
@@ -187,7 +187,7 @@ export function createDetailFlows(parent: Group) {
           color: B_HEX,
           type: 2,
           group: GROUP.mmaIn,
-          size: 1.2,
+          size: 0.66,
           w: i,
           arc: 2,
         });
@@ -197,7 +197,7 @@ export function createDetailFlows(parent: Group) {
           color: B_HEX,
           type: 2,
           group: GROUP.mmaIn,
-          size: 1.05,
+          size: 0.58,
           w: i,
           arc: 4,
         });
@@ -213,7 +213,7 @@ export function createDetailFlows(parent: Group) {
           color: ACC_HEX,
           type: 0,
           group: GROUP.mmaOut,
-          size: 0.98,
+          size: 0.54,
           w: k / 3,
           speed: 0.9,
         });
@@ -224,7 +224,7 @@ export function createDetailFlows(parent: Group) {
           color: OK_HEX,
           type: 0,
           group: GROUP.drain,
-          size: 0.9,
+          size: 0.5,
           w: k / 3,
           speed: 0.8,
         });
@@ -237,7 +237,7 @@ export function createDetailFlows(parent: Group) {
           color: OK_HEX,
           type: 0,
           group: GROUP.store,
-          size: 1.05,
+          size: 0.58,
           w: (k + sp.q * 2) / 8,
           speed: 0.45,
           arc: 2.5,
@@ -256,7 +256,7 @@ export function createDetailFlows(parent: Group) {
         color: OK_HEX,
         type: 0,
         group: GROUP.store,
-        size: 1.2,
+        size: 0.66,
         w: k / 6,
         speed: 0.4,
         arc: 3,
