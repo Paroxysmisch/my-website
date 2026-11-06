@@ -41,7 +41,8 @@ const BLOCKS: [DieBlock["kind"], Rect][] = [
   ["hbmctrl", [655, 275, 260, 70]],
   ["hbmctrl", [345, 1075, 230, 70]],
   ["hbmctrl", [655, 1075, 260, 70]],
-  ["io", [262, 275, 118, 840]],
+  ["io", [262, 275, 78, 120]],
+  ["io", [262, 400, 78, 675]],
   ["l2", [582, 352, 133, 320]],
   ["l2", [582, 752, 133, 320]],
   ["giga", [382, 678, 477, 67]],
@@ -205,7 +206,7 @@ export function subPartition(q: number) {
 }
 export const RING = { slotW: 2.45, gap: 0.2, h: 3.0, count: 6 };
 export const ringX = (i: number) => -9.25 + RING.slotW / 2 + i * (RING.slotW + RING.gap);
-export const STAGING = { x: 8.55, w: 2.4 };
+export const STAGING = { x: 7.9, w: 2.4 };
 /** vertical positions of the HBM region below the SM pair (detail units) */
 export const STRIP = { a: -20.5, b: -22.7, h: 0.95, half: 9 };
 export const HBM_SLAB = { y: -25.4, h: 1.5, w: 41.6 };

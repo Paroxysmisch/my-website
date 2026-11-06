@@ -163,7 +163,7 @@ export function createSmPair() {
       // 8 LD/ST + SFU
       for (let i = 0; i < 8; i++) {
         box(
-          cx - hw + 0.45 + i * 0.86,
+          cx - hw + 0.43 + i * 0.86,
           sp.ldst,
           0.4,
           0.78,
@@ -178,10 +178,10 @@ export function createSmPair() {
         );
       }
       box(
-        cx - hw + 0.45 + 7 * 0.86 + 1.1,
+        cx + hw - 1.015,
         sp.ldst,
         0.4,
-        1.4,
+        2.03,
         0.8,
         0.4,
         "#7a3a33",
