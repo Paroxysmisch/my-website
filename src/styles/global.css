@@ -40,16 +40,18 @@ ol {
 }
 
 h1 {
-  font-size: clamp(3rem, 8.6vw, 6.6rem);
-  line-height: 0.96;
-  letter-spacing: -0.045em;
+  font-family: var(--font-pixel);
+  font-size: clamp(2.8rem, 7.4vw, 5.8rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
   font-weight: 600;
   text-wrap: balance;
 }
 h2 {
-  font-size: clamp(2.2rem, 4.4vw, 3.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-family: var(--font-pixel);
+  font-size: clamp(2.1rem, 4.2vw, 3.3rem);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
   font-weight: 600;
   text-wrap: balance;
 }
@@ -120,7 +122,6 @@ code,
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: var(--bg);
   overflow: hidden;
   pointer-events: none;
 }
@@ -152,7 +153,7 @@ html.scene-on .scene-poster {
 .scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 28%, color-mix(in srgb, var(--bg) 0%, transparent) 50%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 78%, transparent) 0%, color-mix(in srgb, var(--bg) 78%, transparent) 26%, transparent 50%);
 }
 .labels {
   position: absolute;
@@ -495,7 +496,7 @@ a.arrow:hover::after {
   display: grid;
   gap: 10px;
   padding-top: 8px;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .facts div {
   display: grid;
@@ -512,7 +513,7 @@ a.arrow:hover::after {
   display: grid;
   gap: 18px;
   padding-top: 20px;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .stat-nums {
   display: flex;
@@ -544,10 +545,10 @@ a.arrow:hover::after {
   display: grid;
   gap: 10px;
   padding: 26px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .item:last-child {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px dashed var(--line-strong);
 }
 .item h3 a {
   text-decoration: none;
@@ -623,10 +624,10 @@ a.arrow:hover::after {
   grid-template-columns: 3.4rem 1fr;
   gap: 4px 14px;
   padding: 22px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .pub:last-child {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px dashed var(--line-strong);
 }
 .pub .year {
   font-family: var(--font-mono);
@@ -665,10 +666,10 @@ a.arrow:hover::after {
   grid-template-columns: 11.2rem 1fr;
   gap: 4px 20px;
   padding: 22px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .role:last-child {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px dashed var(--line-strong);
 }
 .role .when {
   white-space: nowrap;
@@ -699,10 +700,10 @@ a.arrow:hover::after {
   grid-template-columns: 7.6rem 1fr;
   gap: 4px 20px;
   padding: 14px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line-strong);
 }
 .news li:last-child {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px dashed var(--line-strong);
 }
 .news time {
   font-family: var(--font-mono);
@@ -874,4 +875,186 @@ html.scene-hover {
 }
 .labels {
   transition: opacity 0.3s;
+}
+
+
+/* ═════════════ pixel UI layer: pixelated but modern/minimal ═════════════ */
+/* Pixel headings (h1/h2), nav, buttons and labels use the pixel font; body copy stays in Space Grotesk and data in DM Mono.
+   Boxes get a stepped "pixel" border (4 offset shadows) instead of rounded corners. */
+:root {
+  --line-strong: #353840;
+}
+.scene-label,
+#tip,
+#beat,
+#info-btn,
+.menu-mobile nav,
+.skip-link,
+.links-row a {
+  border: 0 !important;
+  border-radius: 0 !important;
+  --pxc: var(--line-strong);
+  box-shadow:
+    0 -2px 0 0 var(--pxc),
+    0 2px 0 0 var(--pxc),
+    -2px 0 0 0 var(--pxc),
+    2px 0 0 0 var(--pxc);
+}
+.scene-label {
+  --pxc: color-mix(in srgb, var(--text) 30%, transparent);
+  font-size: 0.875rem;
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+.scene-label[data-tone="a"] { --pxc: color-mix(in srgb, var(--a) 60%, transparent); }
+.scene-label[data-tone="b"] { --pxc: color-mix(in srgb, var(--b) 60%, transparent); }
+.scene-label[data-tone="acc"] { --pxc: color-mix(in srgb, var(--accent) 60%, transparent); }
+.scene-label[data-tone="ok"] { --pxc: color-mix(in srgb, var(--ok) 60%, transparent); }
+#tip,
+#beat {
+  --pxc: color-mix(in srgb, var(--text) 26%, transparent);
+  background: var(--bg-2);
+  backdrop-filter: none;
+}
+#tip strong,
+#beat::first-line {
+  font-family: var(--font-pixel);
+}
+#tip strong {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+#info-btn {
+  --pxc: color-mix(in srgb, var(--text) 26%, transparent);
+  margin: 2px;
+  width: 40px;
+  height: 40px;
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  background: var(--bg-2);
+}
+#info-btn:hover,
+#info.open #info-btn {
+  --pxc: var(--accent);
+}
+.menu-mobile nav {
+  margin-top: 6px;
+  background: var(--bg-2);
+}
+
+/* nav + brand + kicker */
+.brand {
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.nav-desktop a,
+.menu-mobile a,
+.menu-mobile summary,
+.kicker {
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.nav-desktop a {
+  position: relative;
+  padding: 6px 0;
+}
+.nav-desktop a::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.nav-desktop a:hover::before {
+  opacity: 1;
+}
+.kicker .num {
+  font-weight: 600;
+}
+
+/* link chips (GitHub, paper, code…) and copy button */
+.links-row {
+  gap: 12px;
+  padding: 2px;
+}
+.links-row a {
+  --pxc: var(--line-strong);
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  min-height: 44px;
+  padding: 0 14px;
+  margin: 2px;
+  text-decoration: none;
+}
+.links-row a:hover {
+  --pxc: var(--accent);
+}
+.chip-link {
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+.chip-link::before {
+  content: "[";
+  color: var(--faint);
+}
+.chip-link::after {
+  content: "]";
+  color: var(--faint);
+}
+/* dashed button with corner handles (like a selected object) */
+.btn {
+  --h: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: 0;
+  padding: 0 22px;
+  background:
+    linear-gradient(var(--h), var(--h)) 0 0 / 5px 5px no-repeat,
+    linear-gradient(var(--h), var(--h)) 100% 0 / 5px 5px no-repeat,
+    linear-gradient(var(--h), var(--h)) 0 100% / 5px 5px no-repeat,
+    linear-gradient(var(--h), var(--h)) 100% 100% / 5px 5px no-repeat;
+  background-origin: border-box;
+}
+.btn:hover {
+  --h: var(--accent);
+  border-color: var(--accent);
+}
+.meter,
+.meter > span,
+.chart .track,
+.chart .bar {
+  border-radius: 0;
+}
+.pub .venue,
+.tag {
+  font-family: var(--font-mono);
+}
+
+/* background shader (ASCII orbs): see src/scene/bg.ts */
+#bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+html.bg-on #bg {
+  opacity: 1;
+}
+.chip-link {
+  gap: 1px;
 }

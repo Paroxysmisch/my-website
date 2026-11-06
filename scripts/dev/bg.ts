@@ -1,0 +1,11 @@
+import puppeteer from "puppeteer-core";
+const browser = await puppeteer.launch({ executablePath: "/usr/bin/google-chrome", headless: true, args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const page = await browser.newPage();
+await page.setViewport({ width: 1440, height: 900 });
+page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+await page.goto("http://localhost:4322/?tau=0.3", { waitUntil: "load" });
+await page.waitForFunction(() => document.documentElement.classList.contains("bg-on"), { timeout: 20000 });
+await page.mouse.move(300, 300); await page.mouse.move(420, 380, { steps: 8 });
+await new Promise((r) => setTimeout(r, 2500));
+await page.screenshot({ path: "/tmp/bg.png" });
+await browser.close();

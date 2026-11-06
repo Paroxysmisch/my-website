@@ -41,6 +41,14 @@ function enablePosters() {
   for (const s of document.querySelectorAll("section[data-chapter]")) io.observe(s);
 }
 
+const bgCanvas = document.getElementById("bg") as HTMLCanvasElement | null;
+function startBg() {
+  if (!bgCanvas || saveData) return;
+  import("./bg").then((m) => m.startBackground(bgCanvas, { animate: !reduced })).catch(() => {});
+}
+if (typeof requestIdleCallback === "function") requestIdleCallback(startBg, { timeout: 2500 });
+else setTimeout(startBg, 800);
+
 function fallback() {
   root.classList.remove("scene-on");
   canvas?.remove();

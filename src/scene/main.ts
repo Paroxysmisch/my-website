@@ -1,11 +1,12 @@
 import gsap from "gsap";
-import { Color, PerspectiveCamera, Scene, type Vector3, WebGLRenderer } from "three";
+import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { createDie } from "./actors/die";
 import { createAssignFlows, createMatrixFlows } from "./actors/flows";
 import { createMatrices } from "./actors/matrices";
 import { createSmPair } from "./actors/smPair";
 import { createSelectedTile } from "./actors/tiles";
 import { beatAt } from "./beats";
+import { bgMask, setPolygon } from "./bgmask";
 import { createCameraRig } from "./camera";
 import { createHud } from "./hud";
 import { createLabels } from "./labels";
@@ -23,8 +24,8 @@ export function start(canvas: HTMLCanvasElement): StartResult {
 
   let tier: Tier = startTier;
   let quality = makeQuality(tier);
-  const renderer = new WebGLRenderer({ canvas, context: gl, antialias: false, alpha: false });
-  renderer.setClearColor(new Color("#0f1012"), 1);
+  const renderer = new WebGLRenderer({ canvas, context: gl, antialias: false, alpha: true });
+  renderer.setClearColor(new Color("#0f1012"), 0); // transparent: the ASCII background shows through
 
   const scene = new Scene();
   const camera = new PerspectiveCamera();
@@ -94,6 +95,39 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     resize();
   });
 
+  const MAT_ALL = [
+    [-6.5, -6, 0],
+    [-0.5, -6, 0],
+    [-0.5, 0, 0],
+    [-6.5, 0, 0],
+    [0, 0.5, 0],
+    [6, 0.5, 0],
+    [6, 6.5, 0],
+    [0, 6.5, 0],
+    [0, -6, 0],
+    [6, -6, 0],
+    [6, 0, 0],
+    [0, 0, 0],
+  ].map((p) => new Vector3(...(p as [number, number, number])));
+  const MAT_C = MAT_ALL.slice(8);
+  const boxCorners = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) =>
+    [x0, x1].flatMap((x) => [y0, y1].flatMap((y) => [z0, z1].map((z) => new Vector3(x, y, z))));
+  const DIE_BOX = boxCorners(-7.8, 7.8, -6.3, 6.3, -0.1, 0.3);
+  const DETAIL_BOX = boxCorners(-21, 21, -34, 16.5, -0.8, 1.5);
+  function updateMask() {
+    setPolygon(
+      0,
+      U.uABVis.value > 0.5 ? MAT_ALL : MAT_C,
+      mats.group,
+      camera,
+      W,
+      H,
+      U.uMatVis.value,
+    );
+    setPolygon(1, DIE_BOX, die.group, camera, W, H, U.uDieVis.value);
+    setPolygon(2, DETAIL_BOX, detail.group, camera, W, H, U.uDetailVis.value);
+  }
+
   function apply() {
     mats.update();
     const band = U.uBand.value * U.uMatVis.value * U.uABVis.value;
@@ -104,6 +138,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     tile.update();
     labels(S.tau, W, H);
     setHud(Math.min(CHAPTERS - 1, Math.max(0, Math.floor(S.tau + 1e-6))));
+    updateMask();
     picker.refresh();
     const b = beatAt(S.tau);
     if (b !== lastBeat) {
