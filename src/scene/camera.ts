@@ -35,7 +35,11 @@ export interface Region {
   h: number;
 }
 export function regionFor(W: number, H: number, phone: boolean): Region {
-  if (phone) return { x: 6, y: 6, w: W - 12, h: H - 6 - 74 };
+  if (phone) {
+    // the animation occupies the upper part of the full-viewport stage (text starts below it)
+    const animH = Math.min(460, Math.max(300, 0.48 * H));
+    return { x: 6, y: 58, w: W - 12, h: animH - 8 };
+  }
   return { x: W * 0.45, y: 84, w: W * 0.55 - 28, h: H - 84 - 120 };
 }
 

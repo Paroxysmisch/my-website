@@ -50,6 +50,20 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     detail: detail.group,
     getTau: () => S.tau,
   });
+  const infoEl = document.getElementById("info") as HTMLElement;
+  const infoBtn = document.getElementById("info-btn") as HTMLButtonElement;
+  const setInfo = (open: boolean) => {
+    infoEl.classList.toggle("open", open);
+    infoBtn.setAttribute("aria-expanded", String(open));
+  };
+  infoBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setInfo(!infoEl.classList.contains("open"));
+  });
+  document.addEventListener("click", (e) => {
+    if (!infoEl.contains(e.target as Node)) setInfo(false);
+  });
+  addEventListener("keydown", (e) => e.key === "Escape" && setInfo(false));
   const beatEl = document.getElementById("beat") as HTMLElement;
   let lastBeat = "";
   const tl = buildTimeline();
@@ -228,8 +242,8 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   // ── Scroll → active chapter (cheap: no scrubbing) ──
   const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-chapter]"));
   function activeChapter() {
-    const stageBottom = phone ? stage.getBoundingClientRect().bottom : 0;
-    const ref = phone ? stageBottom + 0.3 * (innerHeight - stageBottom) : innerHeight * 0.5;
+    const animBottom = 54 + Math.min(460, Math.max(300, 0.48 * innerHeight));
+    const ref = phone ? animBottom + 0.3 * (innerHeight - animBottom) : innerHeight * 0.5;
     let k = 0;
     sections.forEach((sec, i) => {
       if (sec.getBoundingClientRect().top <= ref) k = i;

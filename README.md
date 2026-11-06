@@ -12,8 +12,8 @@ The page is plain, readable HTML first (no JavaScript needed to read anything). 
 - Palette follows the GEMM walkthrough: **A** blue, **B** magenta, accumulator **amber**, finished/written back **green**, peer SM **purple** (`src/styles/tokens.css`).
 - Scene playback: scrolling only selects the active chapter. The camera pans there (time-based, never scrubbed) and the chapter's data-movement animation then loops in real time, like the hero (`DWELL` in `src/scene/timeline.ts`: ping-pong for state changes, seamless wrap for the SMEM ring, once for the finale). Jumps of more than ~1.5 chapters fade the stage out, cut the story to the destination chapter and play its own pan on fade-in. A fast flick snaps to the nearest section; slow scrolling stays free.
 - Anime.js-style scroll motion: text eases in and out with CSS scroll-driven animations (`animation-timeline: view()`), with an IntersectionObserver fallback. It only starts after the first scroll, so the first paint is static.
-- Desktop: scene fixed on the right, text on the left. Phone/tablet: the scene is a fixed strip at the top and the text scrolls *underneath* it, so the animation is never covered.
-- A one-line narration under the scene (`src/scene/beats.ts`) says in plain language what is happening at each beat, next to a mono readout whose numbers all come from `src/scene/kernel.ts`.
+- Desktop: scene fixed on the right, text on the left. Phone/tablet: the scene fills the viewport with the animation in the upper part; text scrolls up over it but fades out as it crosses mid-screen, so it never covers the animation.
+- The plain-language narration lives in an info button (i) at the corner of the scene (hover or tap) (`src/scene/beats.ts`) says in plain language what is happening at each beat, next to a mono readout whose numbers all come from `src/scene/kernel.ts`.
 
 ## The story (8 chapters)
 

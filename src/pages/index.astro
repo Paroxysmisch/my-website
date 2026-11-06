@@ -70,8 +70,11 @@ const links = Object.entries({
     <canvas id="scene"></canvas>
     <div class="scrim"></div>
     <div class="labels"></div>
-    <p id="beat"></p>
     <div id="hud"></div>
+  </div>
+  <div id="info">
+    <button type="button" id="info-btn" aria-expanded="false" aria-controls="beat" aria-label="About this animation">i</button>
+    <p id="beat" role="status"></p>
   </div>
 
   <main id="main">
@@ -127,11 +130,11 @@ const links = Object.entries({
             const papers = t.relatedPubKeys.length;
             const projs = t.relatedProjectIds.length;
             return (
-              <article class="item rv">
-                <h3>{t.title}</h3>
-                <p>{t.summary}</p>
-                <Meter label={`${t.title}: papers and projects`} value={papers + projs} max={totalItems} />
-                <p class="meta">{plural(papers, "paper")} · {plural(projs, "project")}</p>
+              <article class="item">
+                <h3 class="rv">{t.title}</h3>
+                <p class="rv">{t.summary}</p>
+                <div class="rv"><Meter label={`${t.title}: papers and projects`} value={papers + projs} max={totalItems} /></div>
+                <p class="meta rv">{plural(papers, "paper")} · {plural(projs, "project")}</p>
               </article>
             );
           })}
@@ -146,13 +149,13 @@ const links = Object.entries({
         <ChapterNote index={3} part="caption" />
         <div class="list">
           {projects.map((p) => (
-            <article class="item rv">
-              <p class="meta">{p.data.year}</p>
-              <h3>{p.data.title}</h3>
-              <p>{p.data.summary}</p>
-              {p.data.result && <ResultChart {...p.data.result} />}
-              <div class="tags">{p.data.tags.map((t) => <span class="tag">{t}</span>)}</div>
-              <div class="links-row">
+            <article class="item">
+              <p class="meta rv">{p.data.year}</p>
+              <h3 class="rv">{p.data.title}</h3>
+              <p class="rv">{p.data.summary}</p>
+              {p.data.result && <div class="rv"><ResultChart {...p.data.result} /></div>}
+              <div class="tags rv">{p.data.tags.map((t) => <span class="tag">{t}</span>)}</div>
+              <div class="links-row rv">
                 {p.data.links.paper && <a href={p.data.links.paper}><span class="arrow">paper</span></a>}
                 {p.data.links.code && <a href={p.data.links.code}><span class="arrow">code</span></a>}
                 {p.data.links.demo && <a href={p.data.links.demo}><span class="arrow">demo</span></a>}
@@ -170,11 +173,11 @@ const links = Object.entries({
         <ChapterNote index={4} part="caption" />
         <ol class="list">
           {pubs.map((p) => (
-            <li class="pub rv">
-              <span class="year">{p.year}</span>
+            <li class="pub">
+              <span class="year rv">{p.year}</span>
               <div>
-                <h3>{p.title}</h3>
-                <p class="authors">
+                <h3 class="rv">{p.title}</h3>
+                <p class="authors rv">
                   {p.authors.map((a, i) => (
                     <>
                       {isOwner(a) ? <strong>{a}</strong> : a}
@@ -182,7 +185,7 @@ const links = Object.entries({
                     </>
                   ))}
                 </p>
-                <div class="row">
+                <div class="row rv">
                   <span class="venue">{p.venue}</span>
                   {p.pdf && <a class="chip-link" href={p.pdf}>pdf</a>}
                   <a class="chip-link" href={bibHref(p)} download={`${p.key}.bib`}>bibtex</a>
@@ -202,11 +205,11 @@ const links = Object.entries({
         <ChapterNote index={5} part="caption" />
         <ol class="list">
           {roles.map((r) => (
-            <li class="role rv">
-              <span class="when">{ym(r.start)} – {r.end ? ym(r.end) : "present"}</span>
-              <h3>{r.role} <span class="org">· {r.org}</span></h3>
-              <span class="lane">{r.lane.toLowerCase()}</span>
-              <p>{r.description}</p>
+            <li class="role">
+              <span class="when rv">{ym(r.start)} – {r.end ? ym(r.end) : "present"}</span>
+              <h3 class="rv">{r.role} <span class="org">· {r.org}</span></h3>
+              <span class="lane rv">{r.lane.toLowerCase()}</span>
+              <p class="rv">{r.description}</p>
             </li>
           ))}
         </ol>
@@ -220,9 +223,9 @@ const links = Object.entries({
         <ChapterNote index={6} part="caption" />
         <ul class="news">
           {news.slice(0, 8).map((n) => (
-            <li class="rv">
-              <time datetime={n.date}>{fmtDate(n.date)}</time>
-              <span>{n.text}{n.link && <> <a href={n.link}>link</a></>}</span>
+            <li>
+              <time class="rv" datetime={n.date}>{fmtDate(n.date)}</time>
+              <span class="rv">{n.text}{n.link && <> <a href={n.link}>link</a></>}</span>
             </li>
           ))}
         </ul>

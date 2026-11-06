@@ -192,20 +192,64 @@ html.scene-on .scene-poster {
   color: var(--ok);
   border-color: color-mix(in srgb, var(--ok) 45%, transparent);
 }
-#beat {
-  position: absolute;
-  left: 45%;
+/* info button: the plain-language narration lives in a popover instead of covering the scene */
+#info {
+  position: fixed;
+  z-index: 45;
   right: 28px;
-  bottom: 46px;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--text) 82%, transparent);
-  max-width: 34rem;
-  min-height: 2.9em;
+  bottom: 54px;
   display: none;
 }
-html.scene-on #beat {
+html.scene-on #info {
   display: block;
+}
+#info-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text) 22%, transparent);
+  background: color-mix(in srgb, var(--bg-2) 90%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+#info-btn:hover,
+#info.open #info-btn {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+#beat {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: min(22rem, calc(100vw - 24px));
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+#info.open #beat {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  #info:hover #beat {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
 }
 #hud {
   position: absolute;
@@ -225,32 +269,19 @@ html.scene-on #hud {
 }
 
 @media (max-width: 1024px) {
-  #stage {
-    inset: var(--header-h) 0 auto 0;
-    height: var(--stage-h);
-    z-index: 20;
-  }
-  #stage::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    height: 34px;
-    background: linear-gradient(var(--bg), transparent);
-  }
+  /* the scene fills the viewport behind the text; the text fades out before it can cover the animation */
   .scrim {
     display: none;
   }
+  #info {
+    top: calc(var(--header-h) + 8px);
+    bottom: auto;
+    right: 12px;
+  }
   #beat {
-    left: 0;
-    right: 0;
-    bottom: 6px;
-    padding: 0 16px;
-    max-width: none;
-    font-size: 0.875rem;
-    line-height: 1.4;
-    min-height: 0;
+    bottom: auto;
+    top: calc(100% + 10px);
+    transform: translateY(-6px);
   }
   #hud {
     display: none !important;
@@ -372,7 +403,7 @@ main {
 .chapter[data-chapter="6"] { min-height: 180vh; min-height: 180svh; }
 .chapter[data-chapter="7"] { min-height: 130vh; min-height: 130svh; }
 
-/* On phones the stage is a fixed strip at the top: content starts below it and scrolls underneath. */
+/* On phones the animation occupies the upper part of the viewport; content starts below it. */
 @media (max-width: 1024px) {
   .chapter {
     padding-top: calc(var(--header-h) + var(--stage-h) + 36px);
@@ -743,9 +774,9 @@ a.arrow:hover::after {
       animation-range: cover 0% cover 100%;
     }
     @media (max-width: 1024px) {
-      /* the stage covers the top of the viewport: fade out before reaching it */
+      /* text fades out as it crosses the middle of the screen, so it never covers the animation */
       html.motion .rv {
-        animation-range: cover 0% cover 92%;
+        animation-timeline: view(block 46% 0%);
       }
     }
   }
@@ -830,10 +861,9 @@ html.scene-hover {
   transition-duration: 0.22s;
 }
 #stage.fade .labels,
-#stage.fade #beat {
+#stage.fade ~ #info {
   opacity: 0;
 }
-.labels,
-#beat {
+.labels {
   transition: opacity 0.3s;
 }

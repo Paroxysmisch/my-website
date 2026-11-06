@@ -45,6 +45,7 @@ function fallback() {
   root.classList.remove("scene-on");
   canvas?.remove();
   hud?.remove();
+  document.getElementById("info")?.remove();
   enablePosters();
 }
 

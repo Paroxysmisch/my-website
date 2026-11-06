@@ -22,7 +22,7 @@
 @media (max-width: 1024px) {
   :root {
     --header-h: 54px;
-    --stage-h: clamp(300px, 46svh, 470px);
+    --stage-h: clamp(300px, 48svh, 460px);
     --col: 100%;
     --pad: clamp(20px, 5vw, 40px);
   }
