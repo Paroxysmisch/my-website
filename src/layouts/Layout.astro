@@ -48,7 +48,22 @@ const { title, description, scene = false } = Astro.props;
         },
         { rootMargin: "0px 0px -8% 0px" },
       );
-      for (const el of document.querySelectorAll(".reveal")) io.observe(el);
+      const items = [...document.querySelectorAll<HTMLElement>(".rv")];
+      for (const el of items) io.observe(el);
+      // fallback path: anything scrolled (or jumped) past stays revealed
+      let tick = 0;
+      addEventListener(
+        "scroll",
+        () => {
+          cancelAnimationFrame(tick);
+          tick = requestAnimationFrame(() => {
+            for (const el of items) {
+              if (!el.classList.contains("in") && el.getBoundingClientRect().bottom < 0) el.classList.add("in");
+            }
+          });
+        },
+        { passive: true },
+      );
     </script>
   </body>
 </html>

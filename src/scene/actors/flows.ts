@@ -11,7 +11,6 @@ import {
   C_THUMB,
   diePairs,
   gigaCenter,
-  MAT,
   RING,
   ringX,
   SM_L,
@@ -41,6 +40,7 @@ interface Flow {
   w: number;
   speed?: number;
   arc?: number;
+  tail?: number;
 }
 
 function build(flows: Flow[], parent: Group) {
@@ -67,7 +67,7 @@ function build(flows: Flow[], parent: Group) {
     c.set(f.color).convertLinearToSRGB();
     color.set([c.r, c.g, c.b], i * 3);
     info.set([f.type, f.group, f.size, f.w], i * 4);
-    extra.set([f.speed ?? 0.3, f.arc ?? 0, 0, 0], i * 4);
+    extra.set([f.speed ?? 0.3, f.arc ?? 0, f.tail ?? 0, 0], i * 4);
   });
   geo.setAttribute("aStart", new InstancedBufferAttribute(start, 3));
   geo.setAttribute("aEnd", new InstancedBufferAttribute(end, 3));
@@ -89,35 +89,36 @@ const rnd = () => {
   return seed / 2147483647;
 };
 
-/** Hero: dot-product streams. A flows along the active row, B down the active column, meeting in C. */
+/** Hero: tiled matmul. Sparks stream from the active A tile and B tile into the C tile being accumulated. */
 export function createMatrixFlows(parent: Group) {
-  const { S: size, gap } = MAT;
   const flows: Flow[] = [];
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 18; i++) {
+    const jit = () => (rnd() - 0.5) * 0.5;
     flows.push({
-      start: [-gap, 0, 0.05],
-      end: [0, 0, 0.05],
+      start: [jit(), jit(), 0],
+      end: [jit(), jit(), 0],
       color: A_HEX,
       type: 4,
       group: GROUP.matA,
-      size: 0.17,
-      w: rnd(),
-      speed: 0.22 + rnd() * 0.1,
-      arc: 0.5 + rnd() * 0.9,
+      size: 0.1,
+      w: i / 18,
+      speed: 0.42,
+      arc: 0.9 + rnd() * 0.7,
+      tail: 0.16,
     });
     flows.push({
-      start: [0, gap, 0.05],
-      end: [0, 0, 0.05],
+      start: [jit(), jit(), 0],
+      end: [jit(), jit(), 0],
       color: B_HEX,
       type: 5,
       group: GROUP.matB,
-      size: 0.17,
-      w: rnd(),
-      speed: 0.22 + rnd() * 0.1,
-      arc: 0.5 + rnd() * 0.9,
+      size: 0.1,
+      w: i / 18 + 0.5 / 18,
+      speed: 0.42,
+      arc: 0.9 + rnd() * 0.7,
+      tail: 0.16,
     });
   }
-  void size;
   return build(flows, parent);
 }
 
@@ -132,8 +133,9 @@ export function createAssignFlows(parent: Group) {
       type: 3,
       group: GROUP.assign,
       size: 0.1,
-      w: p.id,
+      w: p.id % 37,
       arc: 0.35,
+      tail: 0.2,
     };
   });
   return build(flows, parent);

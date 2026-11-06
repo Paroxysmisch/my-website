@@ -1,0 +1,18 @@
+{
+  "jobs": [
+    {
+      "id": "CSmaqqdnxt",
+      "name": "Continue",
+      "schedule": "2026-11-06T02:31:04.886Z",
+      "prompt": "Continue",
+      "enabled": false,
+      "type": "once",
+      "createdAt": "2026-11-06T00:31:26.555Z",
+      "runCount": 1,
+      "session": "01a1ad82-c112-7426-8a03-14677d78ce2e",
+      "lastStatus": "success",
+      "lastRun": "2026-11-06T04:21:05.367Z"
+    }
+  ],
+  "version": 1
+}

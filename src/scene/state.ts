@@ -12,6 +12,8 @@ export const U = {
   uABVis: f(1),
   uBand: f(1),
   uGrid: f(),
+  /** 0 = coarse 8×8 tile grid of the hero, 1 = the real 32×32 tiling */
+  uRefine: f(),
   uSweep: f(),
   uFocus: f(),
   uSplit: f(),

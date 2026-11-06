@@ -106,7 +106,9 @@ export const diePairs: DiePair[] = [];
         const off = gi < 3 && tpc === GPU.tpcsPerGpc - 1;
         const id = off ? -1 : pairId++;
         const sx = [] as number[];
-        for (const c of [cpair * 2, cpair * 2 + 1]) {
+        for (const c0 of [cpair * 2, cpair * 2 + 1]) {
+          // the right die is the mirror image of the left one, so both dies share one numbering/order
+          const c = die === 1 ? 3 - c0 : c0;
           const x = g.cx - g.w / 2 + (c + 0.5) * cw;
           const y = g.cy + g.h / 2 - (row + 0.5) * ch;
           dieSms.push({ cx: x, cy: y, w: cw * 0.86, h: ch * 0.86, pair: id, die });

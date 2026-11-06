@@ -778,3 +778,48 @@ a.arrow:hover::after {
 a.mail {
   text-decoration-thickness: 2px;
 }
+
+/* ───────────── scene tooltips ───────────── */
+#tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  max-width: min(21rem, calc(100vw - 20px));
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-2) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(8px);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+#tip strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+#tip em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+.scene-hl {
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4), 0 0 16px color-mix(in srgb, var(--accent) 45%, transparent);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+html.scene-hover {
+  cursor: help;
+}

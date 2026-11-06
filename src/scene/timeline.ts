@@ -33,7 +33,8 @@ export function buildTimeline() {
   to(S, { camT: 7 }, 6.95, 0.45);
 
   // ── 1 · tiling: C splits into 32×32 tiles; one tile + its A row strip and B column strip stay lit ──
-  to(U.uBand, { value: 0 }, 0.9, 0.25);
+  to(U.uBand, { value: 0 }, 0.92, 0.2);
+  to(U.uRefine, { value: 1 }, 1.0, 0.2);
   to(U.uGrid, { value: 1 }, 1.1, 0.2);
   to(U.uSweep, { value: 1 }, 1.3, 0.4);
   to(U.uFocus, { value: 1 }, 1.7, 0.15);
@@ -45,8 +46,8 @@ export function buildTimeline() {
   to(S, { matX: -8.85, matY: 8.05, matScale: 0.34 }, 2.0, 0.5);
   to(U.uDieVis, { value: 1 }, 2.2, 0.3);
   g(GROUP.assign, 1, 2.5, 0.05);
-  to(U.uAssign, { value: 1 }, 2.5, 0.35);
-  g(GROUP.assign, 0, 2.88, 0.08);
+  to(U.uAssign, { value: 1 }, 2.5, 0.4);
+  g(GROUP.assign, 0, 2.92, 0.06);
   to(U.uDieFocus, { value: 1 }, 2.8, 0.12);
   to(U.uSelLift, { value: 1 }, 2.77, 0.03);
   to(S, { tileFly: 1 }, 2.78, 0.35, "none");

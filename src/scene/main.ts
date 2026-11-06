@@ -10,6 +10,7 @@ import { beatAt } from "./beats";
 import { createCameraRig } from "./camera";
 import { createHud } from "./hud";
 import { createLabels } from "./labels";
+import { createPicker } from "./picking";
 import { detectTier, makeQuality, stepDown, type Tier, Watchdog } from "./quality";
 import { GROUP, S, U } from "./state";
 import { buildTimeline, CHAPTERS } from "./timeline";
@@ -43,6 +44,14 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   const labelHost = stage.querySelector<HTMLElement>(".labels") as HTMLElement;
   const labels = createLabels(labelHost, camera, (v: Vector3) => mats.group.localToWorld(v));
   const setHud = createHud(document.getElementById("hud") as HTMLElement);
+  const picker = createPicker({
+    stage,
+    camera,
+    mats: mats.group,
+    die: die.group,
+    detail: detail.group,
+    getTau: () => S.tau,
+  });
   const beatEl = document.getElementById("beat") as HTMLElement;
   let lastBeat = "";
   const tl = buildTimeline();
@@ -84,6 +93,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     tile.update();
     labels(S.tau, W, H);
     setHud(Math.min(CHAPTERS - 1, Math.max(0, Math.floor(S.tau + 1e-6))));
+    picker.refresh();
     const b = beatAt(S.tau);
     if (b !== lastBeat) {
       beatEl.textContent = b;

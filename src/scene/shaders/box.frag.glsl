@@ -51,13 +51,15 @@ void main() {
   } else if (kind < 2.5) { // 2: SM tile on the die, idx = CTA pair id (-1 = fused off)
     alpha = uDieVis;
     if (idx >= 0.0) {
-      float pn = idx / 74.0;
-      float a = uAssign * 1.25 - pn;
+      // both dies are mirror images and run the same schedule: order by the index within the die
+      float loc = idx >= 37.0 ? idx - 37.0 : idx;
+      float pn = loc / 37.0;
+      float a = uAssign * 1.3 - pn;
       float flash = a > 0.0 ? exp(-a * 8.0) : 0.0;
       float assigned = a > 0.0 ? 0.30 : 0.0;
       float sel = step(abs(idx - 20.0), 0.5);
       float lock = sel * uLock;
-      float w = uWave * 1.25 - hash21(vec2(idx, 3.0)) * 0.55 - pn * 0.1;
+      float w = uWave * 1.25 - hash21(vec2(loc, 3.0)) * 0.55 - pn * 0.1;
       float busy = clamp(w * 5.0, 0.0, 1.0);
       float calm = busy * uCalm;
       float h = max(max(flash, assigned * (1.0 - calm)), busy * 0.9 * (1.0 - calm));
