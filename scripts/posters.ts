@@ -4,7 +4,7 @@ import { mkdirSync, statSync } from "node:fs";
 import puppeteer from "puppeteer-core";
 import sharp from "sharp";
 
-const TAUS = [0.3, 1.95, 2.9, 3.9, 4.6, 5.6, 6.7, 7.95];
+const TAUS = [0.3, 1.95, 2.9, 3.7, 4.7, 5.8, 6.8, 7.95];
 const SIZES = [
   { suffix: "", w: 1280, h: 800, el: false },
   { suffix: "-m", w: 390, h: 844, el: true }, // phone: only the stage strip

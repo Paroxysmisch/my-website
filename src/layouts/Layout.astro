@@ -47,33 +47,43 @@ const { title, description, scene = false } = Astro.props;
         let lastT = performance.now();
         let peak = 0;
         let idle = 0;
-        let ignoreUntil = 0;
-        let snapping = false;
-        let snapEnd = 0;
-        const targets = () => secs.map((el) => Math.max(0, Math.round(el.getBoundingClientRect().top + scrollY)));
+        let anim = 0;
+        let animating = false;
+        const tops = () => secs.map((el) => Math.max(0, Math.round(el.getBoundingClientRect().top + scrollY)));
+        const cancel = () => {
+          if (!animating) return;
+          cancelAnimationFrame(anim);
+          animating = false;
+          startY = -1;
+          lastY = scrollY;
+        };
+        const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+        const glide = (to: number) => {
+          const from = scrollY;
+          const dur = Math.min(950, Math.max(520, Math.abs(to - from) * 0.45));
+          const t0 = performance.now();
+          animating = true;
+          const step = (now: number) => {
+            const p = Math.min(1, (now - t0) / dur);
+            scrollTo(0, from + (to - from) * ease(p));
+            if (p < 1) anim = requestAnimationFrame(step);
+            else {
+              animating = false;
+              startY = -1;
+              lastY = scrollY;
+            }
+          };
+          anim = requestAnimationFrame(step);
+        };
+        for (const ev of ["wheel", "touchstart", "mousedown", "keydown"]) addEventListener(ev, cancel, { passive: true });
         document.addEventListener("click", (e) => {
-          if ((e.target as Element).closest?.('a[href^="#"]')) ignoreUntil = performance.now() + 1500;
-        });
-        addEventListener("keydown", () => {
-          ignoreUntil = performance.now() + 800;
+          if ((e.target as Element).closest?.('a[href^="#"]')) cancel();
         });
         addEventListener(
           "scroll",
           () => {
+            if (reduce || animating) return;
             const now = performance.now();
-            if (snapping) {
-              clearTimeout(snapEnd);
-              snapEnd = window.setTimeout(() => {
-                snapping = false;
-                startY = -1;
-                lastY = scrollY;
-              }, 220);
-              return;
-            }
-            if (reduce || now < ignoreUntil) {
-              startY = -1;
-              return;
-            }
             if (startY < 0) {
               startY = lastY;
               peak = 0;
@@ -88,7 +98,7 @@ const { title, description, scene = false } = Astro.props;
               const from = startY;
               startY = -1;
               if (Math.abs(dy) < 90 || peak < 1.4) return;
-              const ts = targets();
+              const ts = tops();
               const max = document.documentElement.scrollHeight - innerHeight;
               let target: number | undefined;
               if (dy > 0) target = ts.find((y) => y > from + 40);
@@ -96,15 +106,8 @@ const { title, description, scene = false } = Astro.props;
               if (target === undefined) return;
               target = Math.min(target, max);
               if (Math.abs(target - scrollY) < 24) return;
-              snapping = true;
-              clearTimeout(snapEnd);
-              snapEnd = window.setTimeout(() => {
-                snapping = false;
-                startY = -1;
-                lastY = scrollY;
-              }, 1400);
-              scrollTo({ top: target, behavior: "smooth" });
-            }, 130);
+              glide(target);
+            }, 140);
           },
           { passive: true },
         );

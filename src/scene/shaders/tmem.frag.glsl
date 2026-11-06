@@ -1,5 +1,5 @@
 // One Tensor Memory slice: 32 lanes x 512 columns (a quarter of an SM's 128 x 512), one per sub-partition.
-uniform float uDetailVis, uT, uDrain, uShrink, uNext, uFocusMask, uFocusAmt;
+uniform float uDetailVis, uAcc, uDrain, uShrink, uNext, uFocusMask, uFocusAmt;
 uniform float uQuad; // sub-partition index 0..3
 varying vec2 vUv;
 
@@ -12,7 +12,7 @@ void main() {
   float px = max(fwidth(cc.x), fwidth(cc.y));
   float hf = step(256.0, id.x); // 0: accumulator buffer of this tile, 1: buffer for the next tile
   float r = hash21(id + uQuad * 17.0);
-  float acc = clamp((uT - 5.0) / 128.0, 0.0, 1.0);
+  float acc = uAcc;
   float a = acc * (0.55 + 0.45 * r);
   float nx = clamp(uNext * (0.5 + 0.5 * r), 0.0, 0.6);
   float v = hf < 0.5 ? a : nx;

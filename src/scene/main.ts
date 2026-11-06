@@ -1,5 +1,4 @@
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Color, PerspectiveCamera, Scene, type Vector3, WebGLRenderer } from "three";
 import { createDie } from "./actors/die";
 import { createAssignFlows, createMatrixFlows } from "./actors/flows";
@@ -13,7 +12,7 @@ import { createLabels } from "./labels";
 import { createPicker } from "./picking";
 import { detectTier, makeQuality, stepDown, type Tier, Watchdog } from "./quality";
 import { GROUP, S, U } from "./state";
-import { buildTimeline, CHAPTERS } from "./timeline";
+import { buildTimeline, CHAPTERS, DWELL } from "./timeline";
 
 export type StartResult = { ok: true } | { ok: false; reason: string };
 
@@ -21,7 +20,6 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   const stage = document.getElementById("stage") as HTMLElement;
   const { tier: startTier, gl } = detectTier(canvas);
   if (startTier === "off" || !gl) return { ok: false, reason: "tier-off" };
-  gsap.registerPlugin(ScrollTrigger);
 
   let tier: Tier = startTier;
   let quality = makeQuality(tier);
@@ -70,8 +68,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     requestRender();
   }
 
-  // ── Frame loop (render on demand; ambient animation only while the hero is on screen) ──
-  let dirty = true;
+  // ── Frame loop (continuous while visible: every chapter loops its data movement) ──
   let running = false;
   let visible = true;
   let first = true;
@@ -101,19 +98,82 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     }
   }
 
+  // ── Player: scroll only selects the chapter; τ then travels there (camera pan) and loops the data movement ──
+  const labelsHost = labelHost;
+  let target = 0;
+  let current = 0;
+  let travel: gsap.core.Tween | null = null;
+  let dir = 1;
+  let lastDt = 0;
+  const wasPlaying = { v: false };
+
+  function setTau(t: number) {
+    S.tau = t;
+    tl.time(t);
+  }
+  function goTo(k: number) {
+    if (k === target && (travel || current === k)) return;
+    target = k;
+    const dw = DWELL[k] as (typeof DWELL)[number];
+    travel?.kill();
+    const dist = Math.abs(dw.arrive - S.tau);
+    if (dist < 1e-3) {
+      current = k;
+      travel = null;
+      return;
+    }
+    labelsHost.classList.add("moving");
+    const o = { t: S.tau };
+    travel = gsap.to(o, {
+      t: dw.arrive,
+      duration: Math.min(3.2, 0.6 + 0.8 * dist),
+      ease: "power2.inOut",
+      onUpdate: () => setTau(o.t),
+      onComplete: () => {
+        travel = null;
+        current = k;
+        dir = 1;
+        labelsHost.classList.remove("moving");
+      },
+    });
+  }
+  function advance(dt: number) {
+    if (travel) return;
+    const dw = DWELL[current] as (typeof DWELL)[number];
+    if (dw.mode === "static") return;
+    const rate = (dw.l1 - dw.l0) / dw.secs;
+    let t = S.tau + dir * rate * dt;
+    if (dw.mode === "pingpong") {
+      if (t > dw.l1) {
+        t = 2 * dw.l1 - t;
+        dir = -1;
+      } else if (t < dw.l0) {
+        t = 2 * dw.l0 - t;
+        dir = 1;
+      }
+    } else if (dw.mode === "wrap") {
+      if (t >= dw.l1) t = dw.l0 + (t - dw.l1);
+    } else if (t > dw.l1) t = dw.l1;
+    if (t !== S.tau) setTau(t);
+  }
+
   function frame(now: number) {
     running = false;
-    if (!visible || document.hidden) return;
-    const dt = Math.min(0.05, (now - lastT) / 1000);
-    lastT = now;
-    const ambient = S.tau < 1.0;
-    if (ambient) {
-      U.uTime.value += dt;
-      U.uFlowT.value += dt;
-      dirty = true;
+    if (!visible || document.hidden) {
+      wasPlaying.v = false;
+      return;
     }
-    if (!dirty) return;
-    dirty = false;
+    lastDt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    if (!wasPlaying.v) {
+      wasPlaying.v = true;
+      lastDt = 0;
+    }
+    if (!fixedMode) {
+      U.uTime.value += lastDt;
+      U.uFlowT.value += lastDt;
+      advance(lastDt);
+    }
     apply();
     renderer.render(scene, camera);
     dog.tick(now);
@@ -121,7 +181,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
       first = false;
       document.documentElement.classList.add("scene-on");
     }
-    if (ambient) schedule();
+    schedule();
   }
   function schedule() {
     if (running) return;
@@ -129,67 +189,36 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     requestAnimationFrame(frame);
   }
   function requestRender() {
-    dirty = true;
     schedule();
   }
 
-  // ── Scroll → τ via ScrollTrigger scrub, mapped through section offsets ──
+  // ── Scroll → active chapter (cheap: no scrubbing) ──
   const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-chapter]"));
-  let anchors: number[] = [];
-  function computeAnchors() {
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  function activeChapter() {
     const stageBottom = phone ? stage.getBoundingClientRect().bottom : 0;
     const ref = phone ? stageBottom + 0.3 * (innerHeight - stageBottom) : innerHeight * 0.5;
-    anchors = sections.map((s, i) =>
-      i === 0 ? 0 : Math.max(0, s.getBoundingClientRect().top + scrollY - ref),
-    );
-    anchors.push(maxScroll);
-    for (let i = 1; i < anchors.length; i++) {
-      anchors[i] = Math.max(anchors[i] as number, (anchors[i - 1] as number) + 1);
-    }
-    anchors[anchors.length - 1] = Math.max(anchors[anchors.length - 1] as number, maxScroll);
+    let k = 0;
+    sections.forEach((sec, i) => {
+      if (sec.getBoundingClientRect().top <= ref) k = i;
+    });
+    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 4) k = sections.length - 1;
+    return k;
   }
-  function scrollToTau(y: number) {
-    let i = anchors.length - 2;
-    for (let k = 0; k < anchors.length - 1; k++) {
-      if (y < (anchors[k + 1] as number)) {
-        i = k;
-        break;
-      }
-    }
-    const a = anchors[i] as number;
-    const b = anchors[i + 1] as number;
-    return i + Math.min(1, Math.max(0, (y - a) / (b - a)));
-  }
-  function setTau(t: number) {
-    S.tau = t;
-    tl.time(t);
-    requestRender();
-  }
+  let sraf = 0;
+  const onScroll = () => {
+    cancelAnimationFrame(sraf);
+    sraf = requestAnimationFrame(() => goTo(activeChapter()));
+  };
 
-  const driver = { p: 0 };
   resize();
-  computeAnchors();
   const fixed = new URLSearchParams(location.search).get("tau");
-  if (fixed !== null) {
+  const fixedMode = fixed !== null;
+  if (fixedMode) {
     setTau(Number(fixed));
   } else {
-    gsap.to(driver, {
-      p: 1,
-      ease: "none",
-      scrollTrigger: {
-        start: 0,
-        end: "max",
-        scrub: 0.8,
-        invalidateOnRefresh: true,
-        onRefresh: computeAnchors,
-      },
-      onUpdate: () => {
-        const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-        setTau(scrollToTau(driver.p * maxScroll));
-      },
-    });
-    setTau(scrollToTau(scrollY));
+    setTau((DWELL[0] as (typeof DWELL)[number]).arrive);
+    addEventListener("scroll", onScroll, { passive: true });
+    goTo(activeChapter());
   }
 
   let rt = 0;
@@ -197,8 +226,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     clearTimeout(rt);
     rt = window.setTimeout(() => {
       resize();
-      computeAnchors();
-      ScrollTrigger.refresh();
+      onScroll();
     }, 100);
   }).observe(stage);
   addEventListener("orientationchange", () => requestRender());

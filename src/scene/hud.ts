@@ -24,7 +24,7 @@ export function createHud(el: HTMLElement) {
         text = hud.kloop(Math.min(kBlocks, Math.floor(t) + 1));
         break;
       case 5:
-        text = hud.mma(Math.min(kBlocks, Math.max(0, Math.floor(t - 5))));
+        text = hud.mma(Math.min(kBlocks, Math.max(0, Math.floor(U.uAcc.value * kBlocks))));
         break;
       case 6:
         text = hud.epilogue;

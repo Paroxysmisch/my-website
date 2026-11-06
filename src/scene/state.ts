@@ -35,6 +35,8 @@ export const U = {
   uSliceD: f(),
   /** k-block time: block b is loaded during [b, b+1) and consumed by the MMA during [b+5, b+6) */
   uT: f(),
+  /** accumulator fill (0..1) shown in TMEM; looped independently of the ring speed */
+  uAcc: f(),
   uTma: f(),
   uMma: f(),
   uDrain: f(),

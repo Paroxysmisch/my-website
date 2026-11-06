@@ -49,7 +49,7 @@ export function slotState(i: number): string {
 }
 
 export const tmemProgress = () => {
-  const done = Math.max(0, Math.min(128, Math.floor(U.uT.value - 5)));
+  const done = Math.max(0, Math.min(128, Math.floor(U.uAcc.value * 128)));
   const drained = U.uDrain.value;
   if (drained > 0.02)
     return `epilogue: ${Math.round(Math.min(1, drained) * 100)}% of the accumulator read out`;

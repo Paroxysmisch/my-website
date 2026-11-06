@@ -5,7 +5,7 @@ export interface Quality {
   dprCap: number;
 }
 
-const DPR: Record<Tier, number> = { high: 2, medium: 1.5, low: 1.1, off: 1 };
+const DPR: Record<Tier, number> = { high: 1.75, medium: 1.5, low: 1.1, off: 1 };
 
 type NavigatorExtras = Navigator & {
   deviceMemory?: number;
