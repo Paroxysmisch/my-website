@@ -56,9 +56,21 @@ const { title, description, scene = false } = Astro.props;
           animating = false;
           startY = -1;
           lastY = scrollY;
+          endJump();
+        };
+        // while we glide to a section the 3D scene heads straight for the destination chapter
+        const sync = () => dispatchEvent(new Event("scroll"));
+        const endJump = () => {
+          const w = window as unknown as { __jump?: number };
+          if (w.__jump !== undefined) {
+            w.__jump = undefined;
+            sync();
+          }
         };
         const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-        const glide = (to: number) => {
+        const glide = (to: number, chapter: number) => {
+          (window as unknown as { __jump?: number }).__jump = chapter;
+          sync();
           const from = scrollY;
           const dur = Math.min(950, Math.max(520, Math.abs(to - from) * 0.45));
           const t0 = performance.now();
@@ -71,13 +83,30 @@ const { title, description, scene = false } = Astro.props;
               animating = false;
               startY = -1;
               lastY = scrollY;
+              endJump();
             }
           };
           anim = requestAnimationFrame(step);
         };
         for (const ev of ["wheel", "touchstart", "mousedown", "keydown"]) addEventListener(ev, cancel, { passive: true });
+        // nav / anchor jumps glide to the section (no scroll-padding offset, no accidental snap afterwards)
         document.addEventListener("click", (e) => {
-          if ((e.target as Element).closest?.('a[href^="#"]')) cancel();
+          const a = (e.target as Element).closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+          if (!a) return;
+          const id = a.getAttribute("href")?.slice(1);
+          const i = secs.findIndex((el) => el.id === id);
+          if (i < 0) return;
+          e.preventDefault();
+          a.closest("details")?.removeAttribute("open");
+          cancel();
+          const max = document.documentElement.scrollHeight - innerHeight;
+          const to = Math.min(tops()[i] as number, max);
+          history.replaceState(null, "", `#${id}`);
+          if (reduce) {
+            scrollTo(0, to);
+            return;
+          }
+          glide(to, i);
         });
         addEventListener(
           "scroll",
@@ -100,13 +129,13 @@ const { title, description, scene = false } = Astro.props;
               if (Math.abs(dy) < 90 || peak < 1.4) return;
               const ts = tops();
               const max = document.documentElement.scrollHeight - innerHeight;
-              let target: number | undefined;
-              if (dy > 0) target = ts.find((y) => y > from + 40);
-              else target = [...ts].reverse().find((y) => y < from - 40);
-              if (target === undefined) return;
-              target = Math.min(target, max);
+              let idx = -1;
+              if (dy > 0) idx = ts.findIndex((y) => y > from + 40);
+              else idx = ts.findLastIndex((y) => y < from - 40);
+              if (idx < 0) return;
+              const target = Math.min(ts[idx] as number, max);
               if (Math.abs(target - scrollY) < 24) return;
-              glide(target);
+              glide(target, idx);
             }, 140);
           },
           { passive: true },

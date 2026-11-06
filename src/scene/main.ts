@@ -207,7 +207,10 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   let sraf = 0;
   const onScroll = () => {
     cancelAnimationFrame(sraf);
-    sraf = requestAnimationFrame(() => goTo(activeChapter()));
+    sraf = requestAnimationFrame(() => {
+      const j = (window as unknown as { __jump?: number }).__jump;
+      goTo(j ?? activeChapter());
+    });
   };
 
   resize();
