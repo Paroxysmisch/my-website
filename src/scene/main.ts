@@ -111,9 +111,8 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     S.tau = t;
     tl.time(t);
   }
-  function goTo(k: number) {
-    if (k === target && (travel || current === k)) return;
-    target = k;
+  /** Smooth pan: τ travels to the chapter's arrival point (camera pan + transition-in). */
+  function startTravel(k: number) {
     const dw = DWELL[k] as (typeof DWELL)[number];
     travel?.kill();
     const dist = Math.abs(dw.arrive - S.tau);
@@ -126,7 +125,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     const o = { t: S.tau };
     travel = gsap.to(o, {
       t: dw.arrive,
-      duration: Math.min(3.2, 0.6 + 0.8 * dist),
+      duration: Math.min(2.4, 0.6 + 0.8 * dist),
       ease: "power2.inOut",
       onUpdate: () => setTau(o.t),
       onComplete: () => {
@@ -137,8 +136,42 @@ export function start(canvas: HTMLCanvasElement): StartResult {
       },
     });
   }
+  /**
+   * Far jumps (more than ~1.5 chapters of story) would have to race through everything in between. Instead the
+   * stage fades out, τ cuts to the start of the destination chapter, and the chapter's own pan plays on fade-in:
+   * every section pair is joined by a normal-looking camera pan.
+   */
+  let holding = false;
+  let pending = 0;
+  function goTo(k: number) {
+    if (holding) {
+      pending = k;
+      target = k;
+      return;
+    }
+    if (k === target && (travel || current === k)) return;
+    target = k;
+    const dw = DWELL[k] as (typeof DWELL)[number];
+    if (Math.abs(dw.arrive - S.tau) > 1.55 && !fixedMode) {
+      holding = true;
+      pending = k;
+      travel?.kill();
+      travel = null;
+      stage.classList.add("fade");
+      labelsHost.classList.add("moving");
+      window.setTimeout(() => {
+        const kk = pending;
+        setTau(kk === 0 ? (DWELL[0] as (typeof DWELL)[number]).arrive : kk);
+        holding = false;
+        stage.classList.remove("fade");
+        startTravel(kk);
+      }, 240);
+      return;
+    }
+    startTravel(k);
+  }
   function advance(dt: number) {
-    if (travel) return;
+    if (travel || holding) return;
     const dw = DWELL[current] as (typeof DWELL)[number];
     if (dw.mode === "static") return;
     const rate = (dw.l1 - dw.l0) / dw.secs;

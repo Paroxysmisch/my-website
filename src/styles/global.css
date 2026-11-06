@@ -823,3 +823,17 @@ a.mail {
 html.scene-hover {
   cursor: help;
 }
+
+/* far jumps between sections: the stage fades while the story cuts to the destination chapter */
+#stage.fade #scene {
+  opacity: 0;
+  transition-duration: 0.22s;
+}
+#stage.fade .labels,
+#stage.fade #beat {
+  opacity: 0;
+}
+.labels,
+#beat {
+  transition: opacity 0.3s;
+}
