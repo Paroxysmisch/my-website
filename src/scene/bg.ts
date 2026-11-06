@@ -21,9 +21,9 @@ uniform float uMouseAmt;
 uniform float uCell;   // device px
 uniform vec3 uInk;
 uniform sampler2D uAtlas;
-uniform vec2 uP[24];   // scene footprint polygons (device px, y up), 8 points each
-uniform int uN[3];
-uniform float uA[3];
+uniform vec2 uP[40];   // scene footprint polygons (device px, y up), 8 points each
+uniform int uN[5];
+uniform float uA[5];
 uniform float uMargin;
 out vec4 o;
 
@@ -41,7 +41,8 @@ float clearOf(int k, vec2 q) {
     if (l < 0.5) continue;
     d = max(d, dot(q - a, vec2(e.y, -e.x)) / l);
   }
-  return (1.0 - smoothstep(0.0, uMargin, d)) * uA[k];
+  float t = max(d, 0.0) / uMargin;
+  return exp(-t * t * 2.2) * uA[k]; // long, soft tail instead of a hard edge
 }
 
 float orb(vec2 p, vec2 c, float r) {
@@ -68,12 +69,13 @@ void main() {
   float md = length(p - m);
   f += uMouseAmt * (1.15 * exp(-md * md / 0.018) + 0.22 * sin(md * 46.0 - t * 2.6) * exp(-md * md / 0.05));
   f = clamp(f * 0.62, 0.0, 1.0);
+  // make room for the animation: the field dissolves (glyphs thin out, then vanish) under and around the 3D scene
+  float clear = max(max(clearOf(0, frag), clearOf(1, frag)), max(max(clearOf(2, frag), clearOf(3, frag)), clearOf(4, frag)));
+  f *= 1.0 - 0.92 * clear;
   float idx = floor(f * 9.0 + 0.5);
   vec2 auv = vec2((idx + cuv.x) / 10.0, 1.0 - cuv.y);
   float g = texture(uAtlas, auv).r;
   float a = g * (0.07 + 0.26 * f) * step(0.5, idx);
-  // make room for the animation: the field clears out under (and just around) the 3D scene
-  float clear = max(clearOf(0, frag), max(clearOf(1, frag), clearOf(2, frag)));
   a *= 1.0 - 0.96 * clear;
   o = vec4(uInk * a, a);
 }`;
@@ -195,15 +197,15 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
     gl.uniform1f(uAmt, amt);
     gl.uniform1f(uCell, Math.round(16 * dpr));
     // scene footprint (CSS px, y down) -> device px, y up
-    const pp = new Float32Array(48);
-    for (let i = 0; i < 24; i++) {
+    const pp = new Float32Array(80);
+    for (let i = 0; i < 40; i++) {
       pp[i * 2] = (bgMask.pts[i * 2] as number) * dpr;
       pp[i * 2 + 1] = H - (bgMask.pts[i * 2 + 1] as number) * dpr;
     }
     gl.uniform2fv(uP, pp);
     gl.uniform1iv(uN, bgMask.n);
     gl.uniform1fv(uA, bgMask.a);
-    gl.uniform1f(uMargin, 46 * dpr);
+    gl.uniform1f(uMargin, 130 * dpr);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   draw(0);

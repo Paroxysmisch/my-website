@@ -6,7 +6,7 @@ import { createMatrices } from "./actors/matrices";
 import { createSmPair } from "./actors/smPair";
 import { createSelectedTile } from "./actors/tiles";
 import { beatAt } from "./beats";
-import { bgMask, setPolygon } from "./bgmask";
+import { setPolygon } from "./bgmask";
 import { createCameraRig } from "./camera";
 import { createHud } from "./hud";
 import { createLabels } from "./labels";
@@ -95,37 +95,28 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     resize();
   });
 
-  const MAT_ALL = [
-    [-6.5, -6, 0],
-    [-0.5, -6, 0],
-    [-0.5, 0, 0],
-    [-6.5, 0, 0],
-    [0, 0.5, 0],
-    [6, 0.5, 0],
-    [6, 6.5, 0],
-    [0, 6.5, 0],
-    [0, -6, 0],
-    [6, -6, 0],
-    [6, 0, 0],
-    [0, 0, 0],
-  ].map((p) => new Vector3(...(p as [number, number, number])));
-  const MAT_C = MAT_ALL.slice(8);
+  const rect = (x0: number, x1: number, y0: number, y1: number) => [
+    new Vector3(x0, y0, 0),
+    new Vector3(x1, y0, 0),
+    new Vector3(x1, y1, 0),
+    new Vector3(x0, y1, 0),
+  ];
+  // one polygon per matrix so the cleared area hugs A, B and C instead of their (concave) union
+  const MAT_A = rect(-6.5, -0.5, -6, 0);
+  const MAT_B = rect(0, 6, 0.5, 6.5);
+  const MAT_C = rect(0, 6, -6, 0);
   const boxCorners = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) =>
     [x0, x1].flatMap((x) => [y0, y1].flatMap((y) => [z0, z1].map((z) => new Vector3(x, y, z))));
   const DIE_BOX = boxCorners(-7.8, 7.8, -6.3, 6.3, -0.1, 0.3);
   const DETAIL_BOX = boxCorners(-21, 21, -34, 16.5, -0.8, 1.5);
   function updateMask() {
-    setPolygon(
-      0,
-      U.uABVis.value > 0.5 ? MAT_ALL : MAT_C,
-      mats.group,
-      camera,
-      W,
-      H,
-      U.uMatVis.value,
-    );
-    setPolygon(1, DIE_BOX, die.group, camera, W, H, U.uDieVis.value);
-    setPolygon(2, DETAIL_BOX, detail.group, camera, W, H, U.uDetailVis.value);
+    const mv = U.uMatVis.value;
+    const ab = U.uABVis.value > 0.5 ? mv : 0;
+    setPolygon(0, MAT_A, mats.group, camera, W, H, ab);
+    setPolygon(1, MAT_B, mats.group, camera, W, H, ab);
+    setPolygon(2, MAT_C, mats.group, camera, W, H, mv);
+    setPolygon(3, DIE_BOX, die.group, camera, W, H, U.uDieVis.value);
+    setPolygon(4, DETAIL_BOX, detail.group, camera, W, H, U.uDetailVis.value);
   }
 
   function apply() {

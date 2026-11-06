@@ -1,11 +1,11 @@
 import { type Camera, type Group, Vector3 } from "three";
 
-/** Screen-space footprint of the 3D scene (up to 3 convex polygons, 8 points each, CSS px, y down).
+/** Screen-space footprint of the 3D scene (up to 5 convex polygons, 8 points each, CSS px, y down).
  *  The background shader clears itself out under these so the animation reads cleanly. */
 export const bgMask = {
-  pts: new Float32Array(3 * 8 * 2),
-  n: [0, 0, 0],
-  a: [0, 0, 0],
+  pts: new Float32Array(5 * 8 * 2),
+  n: [0, 0, 0, 0, 0],
+  a: [0, 0, 0, 0, 0],
   active: false,
 };
 
