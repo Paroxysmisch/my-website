@@ -42,7 +42,7 @@ float clearOf(int k, vec2 q) {
     d = max(d, dot(q - a, vec2(e.y, -e.x)) / l);
   }
   float t = max(d, 0.0) / uMargin;
-  return exp(-t * t * 2.2) * uA[k]; // long, soft tail instead of a hard edge
+  return exp(-t * t * 1.6) * uA[k]; // long, soft tail instead of a hard edge
 }
 
 float orb(vec2 p, vec2 c, float r) {
@@ -205,7 +205,7 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
     gl.uniform2fv(uP, pp);
     gl.uniform1iv(uN, bgMask.n);
     gl.uniform1fv(uA, bgMask.a);
-    gl.uniform1f(uMargin, 130 * dpr);
+    gl.uniform1f(uMargin, 260 * dpr);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   draw(0);
