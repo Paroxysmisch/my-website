@@ -1,10 +1,13 @@
 import {
+  AdditiveBlending,
   Color,
   Float32BufferAttribute,
   type Group,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
   Mesh,
+  NormalBlending,
+  type ShaderMaterial,
   Vector3,
 } from "three";
 import {
@@ -28,6 +31,8 @@ export const A_HEX = "#6aa6ff";
 export const B_HEX = "#e062d0";
 const ACC_HEX = "#f0a93a";
 const OK_HEX = "#4ed08a";
+
+export const flowMaterials: ShaderMaterial[] = [];
 
 interface Flow {
   start: number[];
@@ -76,6 +81,7 @@ function build(flows: Flow[], parent: Group) {
   geo.setAttribute("aInfo", new InstancedBufferAttribute(info, 4));
   geo.setAttribute("aExtra", new InstancedBufferAttribute(extra, 4));
   const mat = additiveMaterial(flowVert, flowFrag, { uGroup: { value: S.groups } });
+  flowMaterials.push(mat);
   const mesh = new Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = 40;
@@ -267,3 +273,11 @@ export function createDetailFlows(parent: Group) {
 }
 
 export const _unused = Vector3;
+
+/** Additive glow only works on dark backgrounds; the light theme uses normal alpha blending. */
+export function setFlowTheme(light: boolean) {
+  for (const m of flowMaterials) {
+    m.blending = light ? NormalBlending : AdditiveBlending;
+    m.needsUpdate = true;
+  }
+}

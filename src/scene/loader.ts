@@ -11,10 +11,14 @@ const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const saveData = !!nav.connection?.saveData;
 
-const posterFor = (n: number) => `/posters/chapter-${n}${innerWidth <= 1024 ? "-m" : ""}.avif`;
+const lightTheme = () => document.documentElement.dataset.resolved === "light";
+const posterFor = (n: number) =>
+  `/posters/chapter-${n}${innerWidth <= 1024 ? "-m" : ""}${lightTheme() ? "-light" : ""}.avif`;
+let shownPoster = 0;
 let posterOk = true;
 
 function showPoster(n: number) {
+  shownPoster = n;
   if (!poster || !posterOk) return;
   const src = posterFor(n);
   if (!poster.src.endsWith(src)) poster.src = src;
@@ -30,6 +34,7 @@ function enablePosters() {
   });
   poster.addEventListener("load", () => root.classList.add("has-poster"));
   showPoster(0);
+  addEventListener("themechange", () => showPoster(shownPoster));
   const io = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {

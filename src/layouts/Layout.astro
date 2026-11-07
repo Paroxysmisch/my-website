@@ -15,8 +15,9 @@ const { title, description, scene = false } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#0f1115" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -25,6 +26,12 @@ const { title, description, scene = false } = Astro.props;
     <Font cssVariable="--font-mono" />
     <script is:inline>
       document.documentElement.classList.add("js");
+      // apply a forced theme before first paint (no flash); ?theme=light|dark is for screenshots/tests
+      try {
+        var q = new URLSearchParams(location.search).get("theme");
+        var t = q || localStorage.getItem("theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
     </script>
   </head>
   <body>
@@ -32,6 +39,48 @@ const { title, description, scene = false } = Astro.props;
     <slot />
     {scene && <script>import "../scene/loader";</script>}
     <script>
+      // Theme toggle: auto (follow the system) → light → dark → auto
+      {
+        const root = document.documentElement;
+        const btn = document.getElementById("theme-btn");
+        const mq = matchMedia("(prefers-color-scheme: light)");
+        const mode = () => (root.dataset.theme === "light" || root.dataset.theme === "dark" ? root.dataset.theme : "auto");
+        const isLight = () => (mode() === "auto" ? mq.matches : mode() === "light");
+        const announce = () => {
+          root.dataset.resolved = isLight() ? "light" : "dark";
+          dispatchEvent(new Event("themechange"));
+        };
+        const paint = () => {
+          if (!btn) return;
+          const m = mode();
+          btn.dataset.mode = m;
+          const next = m === "auto" ? "light" : m === "light" ? "dark" : "auto (system)";
+          btn.setAttribute("aria-label", `Theme: ${m === "auto" ? "automatic (system)" : m}. Switch to ${next}`);
+          btn.title = `Theme: ${m === "auto" ? "auto" : m}`;
+        };
+        btn?.addEventListener("click", () => {
+          const m = mode();
+          const next = m === "auto" ? "light" : m === "light" ? "dark" : "auto";
+          if (next === "auto") {
+            delete root.dataset.theme;
+            try {
+              localStorage.removeItem("theme");
+            } catch {}
+          } else {
+            root.dataset.theme = next;
+            try {
+              localStorage.setItem("theme", next);
+            } catch {}
+          }
+          paint();
+          announce();
+        });
+        mq.addEventListener("change", () => {
+          if (mode() === "auto") announce();
+        });
+        paint();
+        announce();
+      }
       // Scroll-driven text motion only starts once the visitor scrolls: the first paint is fully static.
       addEventListener(
         "scroll",

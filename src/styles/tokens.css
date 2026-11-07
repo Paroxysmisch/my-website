@@ -1,5 +1,7 @@
 :root {
+  color-scheme: dark light;
   /* Soft neutral dark. Text is easy on the eyes rather than maximum-contrast. */
+  --shadow: rgb(0 0 0 / 0.5);
   --bg: #0f1012;
   --bg-2: #15161a;
   --text: #e4e5e8;
@@ -27,4 +29,43 @@
     --col: 100%;
     --pad: clamp(20px, 5vw, 40px);
   }
+}
+
+/* Light theme: follows the system unless the visitor forced a theme (html[data-theme]) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f5f4f0;
+    --bg-2: #fdfdfb;
+    --text: #1a1b1e;
+    --muted: #5a5e67;
+    --faint: #80848d;
+    --line: #dedcd4;
+    --line-strong: #cbc9c0;
+    --accent: #a15a00;
+    --a: #1d5fd0;
+    --b: #b0309a;
+    --ok: #137a4a;
+    --peer: #6a4bd8;
+    --shadow: rgb(0 0 0 / 0.14);
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f4f0;
+  --bg-2: #fdfdfb;
+  --text: #1a1b1e;
+  --muted: #5a5e67;
+  --faint: #80848d;
+  --line: #dedcd4;
+  --line-strong: #cbc9c0;
+  --accent: #a15a00;
+  --a: #1d5fd0;
+  --b: #b0309a;
+  --ok: #137a4a;
+  --peer: #6a4bd8;
+  --shadow: rgb(0 0 0 / 0.14);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }

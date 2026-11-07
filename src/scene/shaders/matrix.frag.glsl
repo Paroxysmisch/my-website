@@ -164,5 +164,5 @@ void main() {
       col = mix(heroCol, fine, smoothstep(0.0, 1.0, uRefine));
     }
   }
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(themed(col), 1.0);
 }

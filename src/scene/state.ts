@@ -6,6 +6,7 @@ const f = (v = 0) => ({ value: v });
 /** Shared uniforms: the timeline tweens `.value`, shaders read them. The CPU never touches instances. */
 export const U = {
   uTime: f(),
+  uLight: f(),
   uFlowT: f(),
   // matrices
   uMatVis: f(1),

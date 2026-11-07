@@ -137,5 +137,5 @@ void main() {
   if (dropped(alpha)) discard;
   vec3 c = col * shade + glow;
   c = mix(c, edgeCol, e * edgeAmt);
-  gl_FragColor = vec4(c, 1.0);
+  gl_FragColor = vec4(themed(c), 1.0);
 }

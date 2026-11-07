@@ -14,6 +14,8 @@ void main() {
   float i = clamp(tailI * 0.8 + core + halo, 0.0, 1.0) * edge;
   float al = vAlpha * i;
   if (al < 0.006) discard;
-  vec3 rgb = mix(vColor * 1.15, vec3(1.0), clamp(core * 0.6, 0.0, 1.0));
-  gl_FragColor = vec4(rgb, al);
+  // dark theme: additive glow with a white-hot head; light theme: ordinary alpha blending with a deeper ink-like head
+  vec3 dark = mix(vColor * 1.15, vec3(1.0), clamp(core * 0.6, 0.0, 1.0));
+  vec3 light = mix(vColor * 0.78, vColor * 0.42, clamp(core, 0.0, 1.0));
+  gl_FragColor = vec4(mix(dark, light, uLight), min(1.0, al * mix(1.0, 1.25, uLight)));
 }

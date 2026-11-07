@@ -54,15 +54,22 @@ const links = Object.entries({
 <Layout title={`${profile.name} — ${profile.title}`} description={profile.tagline} scene>
   <header class="site-header">
     <a class="brand" href="#hero">{profile.name}</a>
+    <div class="header-tools">
     <nav class="nav-desktop" aria-label="Sections">
       {nav.map(([id, label]) => <a href={`#${id}`}>{label.toLowerCase()}</a>)}
     </nav>
+    <button type="button" id="theme-btn" class="theme-btn" data-mode="auto" aria-label="Theme: automatic (system)">
+      <svg class="i-auto" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1zM4 1v6h2V6h1V2H6V1z"/></svg>
+      <svg class="i-light" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v1H3zM0 3h1v2H0zm7 0h1v2H7zM3 7h2v1H3zM1 1h1v1H1zm5 0h1v1H6zM1 6h1v1H1zm5 0h1v1H6zM2 2h4v4H2z"/></svg>
+      <svg class="i-dark" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v1H4v1H3v1H2v2h1v1h1v1h1v1H3V7H2V6H1V5H0V3h1V2h1V1h1z"/></svg>
+    </button>
     <details class="menu-mobile">
       <summary aria-label="Menu">menu</summary>
       <nav aria-label="Sections (mobile)">
         {nav.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
       </nav>
     </details>
+    </div>
   </header>
 
   <canvas id="bg" aria-hidden="true"></canvas>

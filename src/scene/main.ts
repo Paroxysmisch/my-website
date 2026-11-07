@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { createDie } from "./actors/die";
-import { createAssignFlows, createMatrixFlows } from "./actors/flows";
+import { createAssignFlows, createMatrixFlows, setFlowTheme } from "./actors/flows";
 import { createMatrices } from "./actors/matrices";
 import { createSmPair } from "./actors/smPair";
 import { createSelectedTile } from "./actors/tiles";
@@ -67,6 +67,14 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   addEventListener("keydown", (e) => e.key === "Escape" && setInfo(false));
   const beatEl = document.getElementById("beat") as HTMLElement;
   let lastBeat = "";
+  // theme: the page decides (auto / forced); the shaders map their colours with uLight
+  const applyTheme = () => {
+    const light = document.documentElement.dataset.resolved === "light";
+    U.uLight.value = light ? 1 : 0;
+    setFlowTheme(light);
+  };
+  applyTheme();
+  addEventListener("themechange", applyTheme);
   const tl = buildTimeline();
 
   // ── Sizing (the stage is the full viewport on desktop, a strip above the text on phones) ──

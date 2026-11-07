@@ -231,7 +231,7 @@ html.scene-on #info {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+  box-shadow: 0 14px 40px var(--shadow);
   font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--text);
@@ -355,7 +355,7 @@ html.scene-on #hud {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+  box-shadow: 0 14px 40px var(--shadow);
 }
 .menu-mobile nav a {
   display: flex;
@@ -824,7 +824,7 @@ a.mail {
   border-radius: 10px;
   background: color-mix(in srgb, var(--bg-2) 94%, transparent);
   border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
-  box-shadow: 0 12px 36px rgb(0 0 0 / 0.5);
+  box-shadow: 0 12px 36px var(--shadow);
   backdrop-filter: blur(8px);
   font-size: 0.875rem;
   line-height: 1.45;
@@ -1057,4 +1057,46 @@ html.bg-on #bg {
 }
 .chip-link {
   gap: 1px;
+}
+
+
+/* theme toggle (auto → light → dark) */
+.theme-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 2px 0 2px 14px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--bg-2);
+  color: var(--muted);
+  border: 0;
+  cursor: pointer;
+  --pxc: var(--line-strong);
+  box-shadow:
+    0 -2px 0 0 var(--pxc),
+    0 2px 0 0 var(--pxc),
+    -2px 0 0 0 var(--pxc),
+    2px 0 0 0 var(--pxc);
+  transition: color 0.2s;
+}
+.theme-btn:hover {
+  color: var(--accent);
+  --pxc: var(--accent);
+}
+.theme-btn svg {
+  width: 20px;
+  height: 20px;
+  display: none;
+  shape-rendering: crispEdges;
+  fill: currentColor;
+}
+.theme-btn[data-mode="auto"] .i-auto,
+.theme-btn[data-mode="light"] .i-light,
+.theme-btn[data-mode="dark"] .i-dark {
+  display: block;
+}
+.header-tools {
+  display: flex;
+  align-items: center;
 }

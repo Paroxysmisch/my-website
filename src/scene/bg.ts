@@ -25,6 +25,7 @@ uniform vec2 uP[40];   // scene footprint polygons (device px, y up), 8 points e
 uniform int uN[5];
 uniform float uA[5];
 uniform float uMargin;
+uniform float uBoost;
 out vec4 o;
 
 // 1 inside the polygon, fading to 0 over uMargin outside it (convex, counter-clockwise)
@@ -75,7 +76,7 @@ void main() {
   float idx = floor(f * 9.0 + 0.5);
   vec2 auv = vec2((idx + cuv.x) / 10.0, 1.0 - cuv.y);
   float g = texture(uAtlas, auv).r;
-  float a = g * (0.07 + 0.26 * f) * step(0.5, idx);
+  float a = g * (0.07 + 0.26 * f) * step(0.5, idx) * uBoost;
   a *= 1.0 - 0.96 * clear;
   o = vec4(uInk * a, a);
 }`;
@@ -114,6 +115,7 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
   const uN = U("uN");
   const uA = U("uA");
   const uMargin = U("uMargin");
+  const uBoost = U("uBoost");
 
   // glyph atlas: 10 glyphs, 64 px cells, white on transparent
   const make = () => {
@@ -142,8 +144,19 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
     draw(last);
   });
   gl.uniform1i(U("uAtlas"), 0);
-  // faint, slightly cool ink (matches --muted)
-  gl.uniform3f(U("uInk"), 0.62, 0.65, 0.72);
+  // faint ink: light on dark, dark on light
+  const uInk = U("uInk");
+  const setInk = () => {
+    const light = document.documentElement.dataset.resolved === "light";
+    if (light) gl.uniform3f(uInk, 0.24, 0.27, 0.33);
+    else gl.uniform3f(uInk, 0.62, 0.65, 0.72);
+    gl.uniform1f(uBoost, light ? 0.8 : 1.0);
+  };
+  addEventListener("themechange", () => {
+    setInk();
+    draw(last);
+  });
+  setInk();
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 

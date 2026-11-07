@@ -20,5 +20,5 @@ void main() {
   col = mix(vec3(0.05, 0.055, 0.065), col, inBlock);
   float bright = (128 & int(uFocusMask)) != 0 ? 1.0 : 0.0;
   col = mix(BG * 1.15, col, mix(1.0, mix(0.22, 1.0, bright), uFocusAmt));
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(themed(col), 1.0);
 }

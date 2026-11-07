@@ -1,5 +1,6 @@
 precision highp float;
 uniform float uTime;
+uniform float uLight; // 0 = dark theme, 1 = light theme
 
 // Palette (inspired by the GEMM walkthrough): A blue, B magenta, accumulator amber, done green, peer purple.
 const vec3 COL_A = vec3(0.416, 0.651, 1.000);
@@ -35,4 +36,28 @@ bool dropped(float alpha) {
 float rasterOrder(vec2 t) {
   float g = floor(t.y / 8.0);
   return g * 8.0 * 32.0 + t.x * 8.0 + mod(t.y, 8.0);
+}
+
+// Light theme: all shaders work in "dark space"; the final colour is mapped here.
+// Muted hardware tones flip their lightness (hue and saturation kept); strongly saturated data colours
+// (A, B, accumulator, done) stay vivid but slightly darker so they read on a light page.
+vec3 flipL(vec3 c) {
+  float mx = max(c.r, max(c.g, c.b));
+  float mn = min(c.r, min(c.g, c.b));
+  float L = 0.5 * (mx + mn);
+  float C = mx - mn;
+  float L2 = clamp(0.965 - 0.95 * L, 0.0, 1.0);
+  float S = C / max(1e-4, 1.0 - abs(2.0 * L - 1.0));
+  float C2 = min(S * 1.35, 1.0) * (1.0 - abs(2.0 * L2 - 1.0));
+  vec3 d = (c - vec3(L)) * (C2 / max(C, 1e-4));
+  return vec3(L2) + d;
+}
+vec3 themed(vec3 c) {
+  if (uLight < 0.001) return c;
+  float C = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+  float dataness = smoothstep(0.40, 0.58, C);
+  float lum = dot(c, vec3(0.299, 0.587, 0.114));
+  vec3 data = c * mix(0.80, 0.60, smoothstep(0.55, 0.95, lum));
+  vec3 lightC = mix(flipL(c), data, dataness);
+  return mix(c, lightC, uLight);
 }

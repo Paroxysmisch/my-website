@@ -3,9 +3,15 @@
 import { readFileSync } from "node:fs";
 
 const css = readFileSync("src/styles/tokens.css", "utf8");
-const tok: Record<string, string> = {};
-for (const m of css.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g))
-  tok[m[1] as string] = m[2] as string;
+const grab = (block: string) => {
+  const t: Record<string, string> = {};
+  for (const m of block.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g))
+    t[m[1] as string] = m[2] as string;
+  return t;
+};
+const darkTok = grab(css.slice(0, css.indexOf("@media")));
+const lightBlock = css.slice(css.indexOf(':root[data-theme="light"]'));
+const lightTok = grab(lightBlock.slice(0, lightBlock.indexOf("}")));
 
 const lin = (c: number) => {
   const s = c / 255;
@@ -37,12 +43,18 @@ const pairs: [string, string, number, string][] = [
   ["line", "bg", 1.2, "hairline separators (decorative)"],
 ];
 let fail = 0;
-for (const [f, b, min, use] of pairs) {
-  const r = ratio(tok[f] as string, tok[b] as string);
-  const ok = r >= min;
-  if (!ok) fail++;
-  console.log(
-    `${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  --${f} on --${b}  ${use}`,
-  );
+for (const [name, tok] of [
+  ["dark", { ...darkTok }],
+  ["light", { ...darkTok, ...lightTok }],
+] as const) {
+  console.log(`— ${name} theme`);
+  for (const [f, b, min, use] of pairs) {
+    const r = ratio(tok[f] as string, tok[b] as string);
+    const ok = r >= min;
+    if (!ok) fail++;
+    console.log(
+      `${ok ? "PASS" : "FAIL"}  ${r.toFixed(2).padStart(5)}:1  (min ${min})  --${f} on --${b}  ${use}`,
+    );
+  }
 }
 process.exit(fail ? 1 : 0);
