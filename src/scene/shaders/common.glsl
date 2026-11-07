@@ -52,12 +52,24 @@ vec3 flipL(vec3 c) {
   vec3 d = (c - vec3(L)) * (C2 / max(C, 1e-4));
   return vec3(L2) + d;
 }
+// Warm accumulator tones (ember → amber → hot) keep their hue in light mode: pale peach → orange → red-orange.
+vec3 warmLight(float l) {
+  float t = smoothstep(0.12, 0.95, l);
+  vec3 peach = vec3(0.99, 0.86, 0.66);
+  vec3 orange = vec3(0.96, 0.55, 0.06);
+  vec3 hot = vec3(0.80, 0.24, 0.05);
+  return t < 0.5 ? mix(peach, orange, t * 2.0) : mix(orange, hot, (t - 0.5) * 2.0);
+}
 vec3 themed(vec3 c) {
   if (uLight < 0.001) return c;
   float C = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-  float dataness = smoothstep(0.40, 0.58, C);
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
-  vec3 data = c * mix(0.80, 0.60, smoothstep(0.55, 0.95, lum));
+  float dataness = smoothstep(0.40, 0.58, C);
+  // data colours: more saturated and a touch darker so they stay vivid on a light page
+  vec3 data = (vec3(lum) + (c - vec3(lum)) * 1.25) * mix(0.92, 0.72, smoothstep(0.6, 0.95, lum));
+  data = clamp(data, 0.0, 1.0);
+  float warm = smoothstep(0.2, 0.36, C) * step(c.b + 0.08, c.g) * step(c.g + 0.04, c.r);
   vec3 lightC = mix(flipL(c), data, dataness);
+  lightC = mix(lightC, warmLight(lum), warm);
   return mix(c, lightC, uLight);
 }
