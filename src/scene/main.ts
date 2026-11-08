@@ -118,16 +118,33 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   const DIE_BOX = boxCorners(-7.8, 7.8, -6.3, 6.3, -0.1, 0.3);
   const DETAIL_BOX = boxCorners(-21, 21, -34, 16.5, -0.8, 1.5);
   function updateMask() {
-    const mv = U.uMatVis.value;
+    const k = animFactor();
+    const mv = U.uMatVis.value * k;
     const ab = U.uABVis.value > 0.5 ? mv : 0;
     setPolygon(0, MAT_A, mats.group, camera, W, H, ab);
     setPolygon(1, MAT_B, mats.group, camera, W, H, ab);
     setPolygon(2, MAT_C, mats.group, camera, W, H, mv);
-    setPolygon(3, DIE_BOX, die.group, camera, W, H, U.uDieVis.value);
-    setPolygon(4, DETAIL_BOX, detail.group, camera, W, H, U.uDetailVis.value);
+    setPolygon(3, DIE_BOX, die.group, camera, W, H, U.uDieVis.value * k);
+    setPolygon(4, DETAIL_BOX, detail.group, camera, W, H, U.uDetailVis.value * k);
+  }
+
+  // phone: the animation is faded/blurred under the text; the background's clear-out follows that, and the stage
+  // only fades back in once the scene has finished its chapter change (no leftovers of the previous chapter)
+  let ready = 1;
+  const animFactor = () => {
+    const a = (window as unknown as { __anim?: number }).__anim ?? 1;
+    return phone ? a * ready : 1;
+  };
+  function updateReady() {
+    if (!phone) return;
+    const busy = !!travel || holding;
+    ready += ((busy ? 0 : 1) - ready) * (busy ? 0.35 : 0.07);
+    if (Math.abs(ready - (busy ? 0 : 1)) < 0.004) ready = busy ? 0 : 1;
+    document.documentElement.style.setProperty("--ready", ready.toFixed(3));
   }
 
   function apply() {
+    updateReady();
     mats.update();
     const band = U.uBand.value * U.uMatVis.value * U.uABVis.value;
     S.groups[GROUP.matA] = band;

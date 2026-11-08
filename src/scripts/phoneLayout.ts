@@ -34,8 +34,9 @@ export function phoneState(tops: number[], y: number): PhoneState {
   let chapter = i;
   if (next !== undefined) {
     const toNext = next - y;
+    // the scene switches chapter earlier than the reveal, while it is hidden by the text
+    if (toNext <= gap() + 0.5 * innerHeight) chapter = i + 1;
     if (toNext <= gap()) {
-      chapter = i + 1;
       const reveal = LOW + (1 - LOW) * smooth(1 - toNext / gap());
       anim = Math.min(anim, reveal);
     }

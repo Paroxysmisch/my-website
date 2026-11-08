@@ -422,9 +422,13 @@ main {
   .chapter[data-chapter="7"] {
     padding-bottom: 24svh;
   }
-  #stage,
+  /* as the text takes over, the animation behind it fades AND blurs; it only returns once the scene is ready */
+  #stage {
+    opacity: calc(var(--anim, 1) * var(--ready, 1));
+    filter: blur(calc((1 - var(--anim, 1)) * 7px));
+  }
   #info {
-    opacity: var(--anim, 1);
+    opacity: calc(var(--anim, 1) * var(--ready, 1));
   }
 }
 

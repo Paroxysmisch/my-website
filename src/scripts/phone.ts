@@ -11,11 +11,13 @@ export const sectionTops = () =>
 function update() {
   if (!isPhone()) {
     root.style.removeProperty("--anim");
+    (window as unknown as { __anim?: number }).__anim = 1;
     delete root.dataset.phoneChapter;
     return;
   }
   const st = phoneState(sectionTops(), scrollY);
   root.style.setProperty("--anim", st.anim.toFixed(3));
+  (window as unknown as { __anim?: number }).__anim = st.anim;
   root.dataset.phoneChapter = String(st.chapter);
 }
 const onScroll = () => {
