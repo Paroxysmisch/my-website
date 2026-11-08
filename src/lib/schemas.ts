@@ -1,6 +1,6 @@
 import { z } from "astro/zod";
 
-const ym = z.string().regex(/^\d{4}-\d{2}$/, "expected YYYY-MM");
+const ym = z.string().regex(/^\d{4}(-\d{2})?$/, "expected YYYY or YYYY-MM");
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
 
 export const profileSchema = z.object({
@@ -12,6 +12,7 @@ export const profileSchema = z.object({
   tagline: z.string(),
   bioMarkdown: z.string(),
   email: z.email(),
+  emailAlt: z.email().optional(),
   links: z.object({
     github: z.string().optional(),
     scholar: z.string().optional(),
@@ -44,7 +45,13 @@ export const experienceSchema = z.array(
 );
 
 export const newsSchema = z.array(
-  z.object({ date: ymd, text: z.string(), link: z.url().optional() }),
+  z.object({
+    date: ymd.optional(),
+    /** shown instead of a date for undated items (e.g. "award") */
+    label: z.string().optional(),
+    text: z.string(),
+    link: z.url().optional(),
+  }),
 );
 
 export const statsSchema = z.object({

@@ -10,7 +10,7 @@ import { experience, getStats, news, profile, research } from "../lib/data";
 import { loadPubs } from "../lib/pubs";
 
 const pubs = loadPubs();
-const projects = (await getCollection("projects")).sort((a, b) => b.data.year - a.data.year);
+const projects = (await getCollection("projects")).sort((a, b) => (b.data.year ?? 0) - (a.data.year ?? 0));
 const { stats, source } = await getStats();
 
 const pubKeys = new Set(pubs.map((p) => p.key));
@@ -41,7 +41,9 @@ const year = new Date().getFullYear();
 const isOwner = (a: string) => !!profile.bibName && a.toLowerCase() === profile.bibName.toLowerCase();
 const bibHref = (p: (typeof pubs)[number]) => `data:text/plain;charset=utf-8,${encodeURIComponent(`${p.bibtex}\n`)}`;
 const ym = (s: string) =>
-  new Date(`${s}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+  s.length === 4
+    ? s
+    : new Date(`${s}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 const roles = [...experience].sort((a, b) => b.start.localeCompare(a.start));
 const links = Object.entries({
   GitHub: profile.links.github,
@@ -157,7 +159,7 @@ const links = Object.entries({
         <div class="list">
           {projects.map((p) => (
             <article class="item">
-              <p class="meta rv">{p.data.year}</p>
+              {(p.data.context ?? p.data.year) && <p class="meta rv">{p.data.context ?? p.data.year}</p>}
               <h3 class="rv">{p.data.title}</h3>
               <p class="rv">{p.data.summary}</p>
               {p.data.result && <div class="rv"><ResultChart {...p.data.result} /></div>}
@@ -231,7 +233,7 @@ const links = Object.entries({
         <ul class="news">
           {news.slice(0, 8).map((n) => (
             <li>
-              <time class="rv" datetime={n.date}>{fmtDate(n.date)}</time>
+              {n.date ? <time class="rv" datetime={n.date}>{fmtDate(n.date)}</time> : <span class="rv when-label">{n.label ?? "award"}</span>}
               <span class="rv">{n.text}{n.link && <> <a href={n.link}>link</a></>}</span>
             </li>
           ))}
@@ -245,6 +247,7 @@ const links = Object.entries({
         <h2 id="contact-h" class="rv">Contact</h2>
         <ChapterNote index={7} part="caption" />
         <p class="rv"><a class="mail" href={`mailto:${profile.email}`}>{profile.email}</a></p>
+        {profile.emailAlt && <p class="rv meta">or <a href={`mailto:${profile.emailAlt}`}>{profile.emailAlt}</a></p>}
         <div class="rv"><CopyButton text={profile.email} label="Copy email" /></div>
         <ul class="links-row rv">
           {links.map(([label, href]) => <li><a href={href}><span class="arrow">{label}</span></a></li>)}

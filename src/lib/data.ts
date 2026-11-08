@@ -25,9 +25,11 @@ function load<T>(file: string, schema: { parse: (v: unknown) => T }, json = fals
 export const profile: Profile = load("data/profile.yaml", profileSchema);
 export const research = load("content/research.yaml", researchSchema);
 export const experience = load("content/experience.yaml", experienceSchema);
-export const news = load("content/news.yaml", newsSchema).sort((a, b) =>
-  b.date.localeCompare(a.date),
-);
+export const news = load("content/news.yaml", newsSchema).sort((a, b) => {
+  // dated items newest first, undated ones (awards) after them in file order
+  if (a.date && b.date) return b.date.localeCompare(a.date);
+  return a.date ? -1 : b.date ? 1 : 0;
+});
 
 /** Citation stats: OpenAlex at build time when configured, else stats.json. Never fails the build. */
 export async function getStats(): Promise<{ stats: Stats; source: string }> {

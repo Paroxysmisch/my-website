@@ -1,16 +1,16 @@
-# PLACEHOLDER CONTENT. Meter value = relatedProjectIds + relatedPubKeys counts.
+# Meter value = relatedProjectIds + relatedPubKeys counts.
 - id: accel-software
-  title: "Software for specialised accelerators"
-  summary: "Placeholder summary. Compilers, kernels and runtimes that map tensor programs onto accelerators and GPU tensor cores. Describe the problem, the approach, and what makes it hard in two to four sentences."
-  relatedProjectIds: [placeholder-compiler]
+  title: "Agents for GPU kernel optimisation"
+  summary: "My PhD work, in the Computer Architecture group at Cambridge: using agents to optimise GPU kernels. This builds on hands-on GPU experience, from a CUDA path tracer to running production GPU clusters."
+  relatedProjectIds: [path-tracer, computer-architecture-essays]
   relatedPubKeys: [placeholder2025a, placeholder2024a]
 - id: ml-design
-  title: "ML-driven accelerator design"
-  summary: "Placeholder summary. Learning-based search and surrogate models that automate exploration of accelerator microarchitecture and mapping design spaces."
-  relatedProjectIds: [placeholder-dse]
+  title: "Geometric and reinforcement learning"
+  summary: "Machine learning on structured problems: graph neural networks that resolve genome assembly graphs, and reinforcement learning with state space models and graph attention for protein folding."
+  relatedProjectIds: [genome-assembly, hp-model]
   relatedPubKeys: [placeholder2025b, placeholder2023a]
 - id: gpu-arch
-  title: "GPU architecture and performance"
-  summary: "Placeholder summary. Characterising and modelling GPU memory systems and tensor pipelines to explain where performance goes."
-  relatedProjectIds: [placeholder-model]
-  relatedPubKeys: [placeholder2024a, placeholder2023a, placeholder2022a]
+  title: "Hardware, systems and simulation"
+  summary: "Computer architecture and systems: accelerator and microprocessor design, large-scale GPU data-centres, and physical simulation optimised with Bayesian methods."
+  relatedProjectIds: [spark-ignition-engine]
+  relatedPubKeys: [placeholder2024a, placeholder2022a]

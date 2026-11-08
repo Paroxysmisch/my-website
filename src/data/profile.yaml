@@ -1,21 +1,17 @@
-# PLACEHOLDER CONTENT — replace with real information.
-name: "[Your Name]"
-bibName: "Your Name"          # how you appear in pubs.bib author lists (gets bolded)
-title: "PhD Candidate, Computer Architecture"
-affiliation: "[Your University], [Department]"
-advisor: "[Advisor Name]"
-tagline: "[One-sentence description] I work on GPUs and specialised accelerators, the software that targets them, and machine learning that automates accelerator design."
+name: "Yash Shah"
+bibName: "Yash Shah"          # how you appear in pubs.bib author lists (gets bolded)
+title: "PhD student, Computer Architecture"
+affiliation: "University of Cambridge"
+tagline: "I'm a PhD student in the Computer Architecture group at the University of Cambridge, working on using agents to optimise GPU kernels."
 bioMarkdown: |
-  This is placeholder text for a short bio. I am a PhD student working on GPU and accelerator architecture, with a focus on how software maps onto specialised hardware.
+  I'm a PhD student in the Computer Architecture group at the University of Cambridge (2026–2030). My current work is on using agents to optimise GPU kernels.
 
-  A second placeholder paragraph describes research interests: compilers for tensor accelerators, performance modelling, and using machine learning to explore accelerator design spaces.
+  I did my BA (1st class) and MEng (Distinction) in Computer Science at Cambridge. My interests span computer architecture, geometric deep learning, reinforcement learning, NLP, graphics and computational biology.
 
-  A third placeholder paragraph covers what I did before the PhD and what I am looking for next.
-email: "you@example.com"
+  Before the PhD I deployed and managed large Slurm/Kubernetes GPU data-centres at Fluidstack, built high-performance data-processing pipelines at Ab Initio, and did research at Google DeepMind on positional encodings for Transformers.
+email: "yashshah00@outlook.com"
+emailAlt: "ys562@cam.ac.uk"
 links:
-  github: "https://github.com/example"
-  scholar: "https://scholar.google.com/"
-  orcid: "https://orcid.org/0000-0000-0000-0000"
-  linkedin: "https://www.linkedin.com/in/example"
-  cv: "/cv.pdf"
+  github: "https://github.com/Paroxysmisch"
+# scholar / orcid / linkedin / cv: add when you have them (they appear automatically)
 # openalexAuthorId: "A0000000000"   # optional: enables live citation stats at build time

@@ -1100,3 +1100,10 @@ html.bg-on #bg {
   display: flex;
   align-items: center;
 }
+
+.news .when-label {
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  color: var(--accent);
+  padding-top: 2px;
+}
