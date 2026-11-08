@@ -127,7 +127,9 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
     x.font = '400 54px "DM Mono", ui-monospace, monospace';
     x.textAlign = "center";
     x.textBaseline = "middle";
-    [...GLYPHS].forEach((ch, i) => x.fillText(ch, i * 64 + 32, 34));
+    [...GLYPHS].forEach((ch, i) => {
+      x.fillText(ch, i * 64 + 32, 34);
+    });
     return c;
   };
   const tex = gl.createTexture();

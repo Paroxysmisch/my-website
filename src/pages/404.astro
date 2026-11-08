@@ -5,7 +5,7 @@ import Layout from "../layouts/Layout.astro";
   <main id="main" class="nf">
     <h1>404</h1>
     <p class="mono">cudaErrorInvalidValue: no page exists at this address</p>
-    <p><a class="link-btn" href="/">Back to home</a></p>
+    <p><a class="link-btn" href={import.meta.env.BASE_URL}>Back to home</a></p>
   </main>
 </Layout>
 

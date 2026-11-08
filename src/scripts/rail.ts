@@ -49,7 +49,9 @@ function update() {
     pcount.textContent = `${String(active + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
   // phone strip: segment j fills while section j is being read
   const p = active + frac;
-  segs.forEach((sg, j) => sg.style.setProperty("--p", Math.min(1, Math.max(0, p - j)).toFixed(3)));
+  segs.forEach((sg, j) => {
+    sg.style.setProperty("--p", Math.min(1, Math.max(0, p - j)).toFixed(3));
+  });
   strip?.setAttribute("aria-valuenow", String(Math.round((Math.min(n, p) / n) * 100)));
 }
 const onScroll = () => {

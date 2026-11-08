@@ -62,7 +62,7 @@ const links = Object.entries({
   ORCID: profile.links.orcid,
   LinkedIn: profile.links.linkedin,
   "CV (PDF)": profile.links.cv,
-}).filter(([, v]) => v) as [string, string][];
+}).filter(([, v]) => v).map(([k, v]) => [k, (v as string).startsWith("/") ? `${import.meta.env.BASE_URL.replace(/\/$/, "")}${v}` : v]) as [string, string][];
 ---
 <Layout title={`${profile.name} — ${profile.title}`} description={profile.tagline} scene>
   <header class="site-header">

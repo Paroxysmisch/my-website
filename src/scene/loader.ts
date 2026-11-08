@@ -13,7 +13,7 @@ const saveData = !!nav.connection?.saveData;
 
 const lightTheme = () => document.documentElement.dataset.resolved === "light";
 const posterFor = (n: number) =>
-  `/posters/chapter-${n}${innerWidth <= 1024 ? "-m" : ""}${lightTheme() ? "-light" : ""}.avif`;
+  `${import.meta.env.BASE_URL.replace(/\/$/, "")}/posters/chapter-${n}${innerWidth <= 1024 ? "-m" : ""}${lightTheme() ? "-light" : ""}.avif`;
 let shownPoster = 0;
 let posterOk = true;
 

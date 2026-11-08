@@ -11,3 +11,7 @@ jobs:
       - run: bun run lint
       - run: bun run check
       - run: bun run build
+      # a sub-path deploy (e.g. GitHub project pages) must not reference root-absolute assets, otherwise the
+      # browser gets 404s for the module scripts and reports 'disallowed MIME type ("")'
+      - run: SITE_BASE=/my-website bun run build
+      - run: "! grep -E '(src|href)=\"/(_astro|favicon|posters)' dist/index.html"

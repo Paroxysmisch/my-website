@@ -1,4 +1,4 @@
-import { CatmullRomCurve3, type PerspectiveCamera, Vector3 } from "three";
+import { type PerspectiveCamera, Vector3 } from "three";
 import { DETAIL_K, detail } from "./layout";
 
 export const FOV = 28;

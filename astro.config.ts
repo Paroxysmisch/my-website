@@ -1,8 +1,12 @@
 import { defineConfig, fontProviders } from "astro/config";
 
+// Set SITE_BASE (e.g. "/my-website") when deploying under a sub-path such as GitHub project pages.
+const base = (process.env.SITE_BASE ?? "/").replace(/\/+$/, "") || "/";
+
 export default defineConfig({
   output: "static",
-  site: "https://example.com",
+  site: process.env.SITE_URL ?? "https://example.com",
+  base,
   build: { inlineStylesheets: "auto" },
   fonts: [
     {
