@@ -25,9 +25,9 @@ if (reduce || !("IntersectionObserver" in window)) {
   };
   const make = () => {
     io?.disconnect();
-    // phones: the animation lives in the top ~half, so text leaves (and is gone) once it crosses mid-screen
-    const top = phone.matches ? 46 : 4;
-    io = new IntersectionObserver(onEntries, { rootMargin: `-${top}% 0px -7% 0px` });
+    // phones: text takes over the whole screen (under the header), so it only leaves at the very top
+    const top = phone.matches ? "-64px" : "-4%";
+    io = new IntersectionObserver(onEntries, { rootMargin: `${top} 0px -7% 0px` });
     for (const el of items) io.observe(el);
   };
   make();

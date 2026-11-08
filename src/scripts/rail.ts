@@ -1,28 +1,29 @@
-// Section rail + progress: highlights the active section, fills the track with overall progress, and drives the
-// phone progress strip. The same "active section" rule as the 3D scene is used.
+// Railway-line nav + progress: highlights the active station, fills the line (and moves the train) with overall
+// progress, and fills the phone strip's grey segments one by one as each section is read.
+import { animBottom, isPhone } from "./phoneLayout";
+
 const secs = [...document.querySelectorAll<HTMLElement>("section[data-chapter]")];
-const rail = document.getElementById("rail");
 const dots = [...document.querySelectorAll<HTMLElement>("#rail a")];
 const strip = document.getElementById("progress-strip");
-const count = document.getElementById("rail-count");
+const segs = strip ? [...strip.querySelectorAll<HTMLElement>("span")] : [];
 const n = secs.length;
 let raf = 0;
 
 function update() {
   const vh = innerHeight;
-  const phone = innerWidth <= 1024;
-  const animBottom = 54 + Math.min(460, Math.max(300, 0.48 * vh));
-  const ref = phone ? animBottom + 0.3 * (vh - animBottom) : vh * 0.5;
+  const phone = isPhone();
+  const ref = phone ? animBottom() + 0.3 * (vh - animBottom()) : vh * 0.5;
   let active = 0;
   secs.forEach((s, i) => {
     if (s.getBoundingClientRect().top <= ref) active = i;
   });
   const max = document.documentElement.scrollHeight - vh;
-  if (scrollY >= max - 4) active = n - 1;
+  const atEnd = scrollY >= max - 4;
+  if (atEnd) active = n - 1;
   const r = (secs[active] as HTMLElement).getBoundingClientRect();
-  const frac = Math.min(1, Math.max(0, (ref - r.top) / Math.max(1, r.height)));
-  const fill = (active + frac) / (n - 1);
-  const f = Math.min(1, Math.max(0, fill));
+  let frac = Math.min(1, Math.max(0, (ref - r.top) / Math.max(1, r.height)));
+  if (atEnd) frac = 1;
+  const f = Math.min(1, (active + frac) / (n - 1));
   document.documentElement.style.setProperty("--fill", f.toFixed(4));
   dots.forEach((d, i) => {
     d.classList.toggle("on", i === active);
@@ -30,9 +31,10 @@ function update() {
     if (i === active) d.setAttribute("aria-current", "location");
     else d.removeAttribute("aria-current");
   });
-  if (count)
-    count.textContent = `${String(active + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
-  strip?.setAttribute("aria-valuenow", String(Math.round(f * 100)));
+  // phone strip: segment j fills while section j is being read
+  const p = active + frac;
+  segs.forEach((sg, j) => sg.style.setProperty("--p", Math.min(1, Math.max(0, p - j)).toFixed(3)));
+  strip?.setAttribute("aria-valuenow", String(Math.round((Math.min(n, p) / n) * 100)));
 }
 const onScroll = () => {
   cancelAnimationFrame(raf);
@@ -41,6 +43,3 @@ const onScroll = () => {
 addEventListener("scroll", onScroll, { passive: true });
 addEventListener("resize", onScroll);
 update();
-void rail;
-
-export {};

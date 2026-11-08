@@ -38,7 +38,8 @@ const railItems = [
   ["news", "News"],
   ["contact", "Contact"],
 ] as const;
-const railColors = ["--text", "--a", "--b", "--accent", "--ok", "--peer", "--a", "--accent"];
+// one distinct colour per station (no repeats, none black)
+const railColors = ["--teal", "--a", "--b", "--accent", "--ok", "--peer", "--yellow", "--red"];
 const nav = [
   ["about", "About"],
   ["research", "Research"],
@@ -66,6 +67,20 @@ const links = Object.entries({
 <Layout title={`${profile.name} — ${profile.title}`} description={profile.tagline} scene>
   <header class="site-header">
     <a class="brand" href="#hero">{profile.name}</a>
+    <nav id="rail" class="rail" aria-label="Sections">
+      <ol>
+        {railItems.map(([id, label], i) => (
+          <li style={`--c: var(${railColors[i]})`}>
+            <a href={`#${id}`}>
+              <span class="dot" aria-hidden="true"></span>
+              <span class="tag-label"><span class="n">{String(i + 1).padStart(2, "0")}</span> {label}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      <span class="track" aria-hidden="true"><span class="fill"></span></span>
+      <span class="train" aria-hidden="true"></span>
+    </nav>
     <div class="header-tools">
     <button type="button" id="theme-btn" class="theme-btn" data-mode="dark" aria-label="Switch theme">
       <svg class="i-light" viewBox="0 0 10 10" aria-hidden="true"><path d="M4 0h2v1h-2zM1 1h1v1h-1zM8 1h1v1h-1zM3 2h4v1h-4zM2 3h6v1h-6zM0 4h1v1h-1zM2 4h6v1h-6zM9 4h1v1h-1zM0 5h1v1h-1zM2 5h6v1h-6zM9 5h1v1h-1zM2 6h6v1h-6zM3 7h4v1h-4zM1 8h1v1h-1zM8 8h1v1h-1zM4 9h2v1h-2z"/></svg>
@@ -78,23 +93,9 @@ const links = Object.entries({
       </nav>
     </details>
     </div>
-    <div id="progress-strip" class="progress-strip" role="progressbar" aria-label="Page progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+    <div id="progress-strip" class="progress-strip" role="progressbar" aria-label="Page progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">{railItems.map(() => <span><i></i></span>)}</div>
   </header>
 
-  <nav id="rail" class="rail" aria-label="Sections">
-    <ol>
-      {railItems.map(([id, label], i) => (
-        <li style={`--c: var(${railColors[i]})`}>
-          <a href={`#${id}`}>
-            <span class="dot" aria-hidden="true"></span>
-            <span class="tag-label"><span class="n">{String(i + 1).padStart(2, "0")}</span> {label}</span>
-          </a>
-        </li>
-      ))}
-    </ol>
-    <span class="track" aria-hidden="true"><span class="fill"></span></span>
-    <span id="rail-count" class="count" aria-hidden="true">01 / 08</span>
-  </nav>
 
   <canvas id="bg" aria-hidden="true"></canvas>
   <div id="stage" aria-hidden="true">

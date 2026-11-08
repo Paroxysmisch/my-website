@@ -40,7 +40,7 @@ export function regionFor(W: number, H: number, phone: boolean): Region {
     const animH = Math.min(460, Math.max(300, 0.48 * H));
     return { x: 6, y: 58, w: W - 12, h: animH - 8 };
   }
-  return { x: W * 0.45, y: 84, w: W * 0.55 - 28, h: H - 84 - 120 };
+  return { x: W * 0.45, y: 100, w: W * 0.55 - 28, h: H - 100 - 120 };
 }
 
 const smooth = (f: number) => f * f * (3 - 2 * f);

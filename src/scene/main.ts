@@ -276,6 +276,10 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   // ── Scroll → active chapter (cheap: no scrubbing) ──
   const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-chapter]"));
   function activeChapter() {
+    if (phone) {
+      const c = document.documentElement.dataset.phoneChapter;
+      if (c !== undefined) return Number(c);
+    }
     const animBottom = 54 + Math.min(460, Math.max(300, 0.48 * innerHeight));
     const ref = phone ? animBottom + 0.3 * (innerHeight - animBottom) : innerHeight * 0.5;
     let k = 0;

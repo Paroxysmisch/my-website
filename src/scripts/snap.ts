@@ -1,3 +1,5 @@
+import { gap, isPhone, takeover } from "./phoneLayout";
+
 // Section snapping. Fast flicks fly to the nearest section top; slow scrolling stays free but is magnetic
 // near a section top. Nav jumps glide too, and the 3D scene is told the destination chapter (window.__jump).
 const secs = [...document.querySelectorAll<HTMLElement>("section[data-chapter]")];
@@ -73,6 +75,37 @@ document.addEventListener("click", (e) => {
   else glide(to, i, false);
 });
 
+/**
+ * Phone (Windows-Phone-style sticky sections): once settled on a section title you scroll freely through its text,
+ * which takes over the screen. Snapping only happens between sections: when the next animation has (partly) revealed
+ * itself we land on the next title, and when scrolling back up we land on a title once its animation shows again.
+ */
+function phoneSnap(dy: number, from: number) {
+  const y = scrollY;
+  const ts = tops();
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const g = gap();
+  const t = takeover();
+  for (let k = 0; k < ts.length; k++) {
+    const tk = ts[k] as number;
+    const d = y - tk;
+    if (Math.abs(d) < 20) return; // already settled
+    let go = false;
+    if (d < 0 && -d <= g) {
+      // in the blank gap before this title: heading down, land on it; heading up, only if almost there
+      go = dy >= 0 || -d < 0.35 * g;
+    } else if (d > 0 && d <= t) {
+      // just below the title: scrolling up from further down lands on it; scrolling down from it is free reading
+      go = dy < 0 && from > tk + t * 0.5;
+    }
+    if (go) {
+      const target = Math.min(tk, max);
+      if (Math.abs(target - y) > 8) glide(target, k, true);
+      return;
+    }
+  }
+}
+
 if (!reduce) {
   addEventListener(
     "scroll",
@@ -90,7 +123,12 @@ if (!reduce) {
       clearTimeout(idle);
       idle = window.setTimeout(() => {
         const dy = scrollY - startY;
+        const from = startY;
         startY = -1;
+        if (isPhone()) {
+          phoneSnap(dy, from);
+          return;
+        }
         const ts = tops();
         const max = document.documentElement.scrollHeight - innerHeight;
         let idx = 0;
@@ -108,5 +146,3 @@ if (!reduce) {
     { passive: true },
   );
 }
-
-export {};

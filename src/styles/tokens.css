@@ -14,8 +14,11 @@
   --b: #e062d0; /* matrix B */
   --ok: #4ed08a; /* finished / written back */
   --peer: #a78bfa;
+  --teal: #36cfc0;
+  --yellow: #e8c547;
+  --red: #f07178;
 
-  --header-h: 60px;
+  --header-h: 72px;
   --stage-h: 0px;
   --pad: clamp(22px, 5.5vw, 88px);
   --col: min(35rem, 43vw);
@@ -47,6 +50,9 @@
     --b: #b0309a;
     --ok: #137a4a;
     --peer: #6a4bd8;
+    --teal: #0b8f84;
+    --yellow: #a67c00;
+    --red: #c4352b;
     --shadow: rgb(0 0 0 / 0.14);
   }
 }
@@ -64,6 +70,9 @@
   --b: #b0309a;
   --ok: #137a4a;
   --peer: #6a4bd8;
+  --teal: #0b8f84;
+  --yellow: #a67c00;
+  --red: #c4352b;
   --shadow: rgb(0 0 0 / 0.14);
 }
 :root[data-theme="dark"] {

@@ -414,6 +414,18 @@ main {
   .chapter[data-chapter="0"] {
     padding-top: calc(var(--header-h) + var(--stage-h) + 36px);
   }
+  /* sticky-section behaviour: no tall empty sections; a blank gap after each section's text lets the next animation reveal */
+  .chapter {
+    min-height: 0 !important;
+    padding-bottom: 55svh;
+  }
+  .chapter[data-chapter="7"] {
+    padding-bottom: 24svh;
+  }
+  #stage,
+  #info {
+    opacity: var(--anim, 1);
+  }
 }
 
 .kicker {
@@ -1083,47 +1095,49 @@ html.bg-on #bg {
 }
 
 
-/* ═════════════ section rail + progress ═════════════ */
+/* ═════════════ railway-line section nav + progress ═════════════ */
 .nav-desktop {
   display: none;
 }
 .rail {
-  position: fixed;
-  z-index: 35;
-  left: 22px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: min(60vh, 500px);
-  width: 28px;
-  display: grid;
+  position: relative;
+  flex: 1;
+  height: var(--header-h);
+  margin: 0 clamp(20px, 4vw, 72px);
+  max-width: 880px;
 }
 .rail ol {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   height: 100%;
   display: flex;
-  flex-direction: column;
   justify-content: space-between;
+  align-items: center;
 }
 .rail li {
   position: relative;
-  height: 0;
-  display: flex;
-  align-items: center;
+  width: 12px;
+  height: 12px;
+  --c: var(--accent);
 }
 .rail a {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  margin-top: 0;
+  display: block;
+  width: 12px;
+  height: 12px;
   text-decoration: none;
-  color: var(--text);
+  color: var(--muted);
+}
+.rail a::after {
+  content: "";
+  position: absolute;
+  inset: -16px -10px;
 }
 .rail .dot {
-  width: 10px;
-  height: 10px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
   background: var(--bg);
   box-shadow:
     0 -2px 0 0 var(--line-strong),
@@ -1132,7 +1146,8 @@ html.bg-on #bg {
     2px 0 0 0 var(--line-strong);
   transition: transform 0.18s steps(3), background 0.2s, box-shadow 0.2s;
 }
-.rail a.done .dot {
+.rail a.done .dot,
+.rail a.on .dot {
   background: var(--c);
   box-shadow:
     0 -2px 0 0 var(--c),
@@ -1141,87 +1156,88 @@ html.bg-on #bg {
     2px 0 0 0 var(--c);
 }
 .rail a.on .dot {
-  background: var(--c);
-  transform: scale(1.5);
-  box-shadow:
-    0 -2px 0 0 var(--c),
-    0 2px 0 0 var(--c),
-    -2px 0 0 0 var(--c),
-    2px 0 0 0 var(--c),
-    0 -5px 0 -1px color-mix(in srgb, var(--c) 40%, transparent),
-    0 5px 0 -1px color-mix(in srgb, var(--c) 40%, transparent),
-    -5px 0 0 -1px color-mix(in srgb, var(--c) 40%, transparent),
-    5px 0 0 -1px color-mix(in srgb, var(--c) 40%, transparent);
-  animation: rail-pulse 1.6s steps(4) infinite;
+  transform: scale(1.35);
+  animation: rail-pulse 1.8s steps(4) infinite;
 }
 @keyframes rail-pulse {
   50% {
-    transform: scale(1.7);
+    transform: scale(1.6);
   }
 }
 .rail a:hover .dot,
 .rail a:focus-visible .dot {
-  transform: scale(1.6);
+  transform: scale(1.5);
   background: var(--c);
 }
+/* station names alternate above / below the line, like a timetable */
 .rail .tag-label {
   position: absolute;
-  left: 36px;
-  top: 50%;
-  transform: translate(-6px, -50%);
+  left: 50%;
+  transform: translateX(-50%);
   white-space: nowrap;
   font-family: var(--font-pixel);
-  font-size: 0.95rem;
-  padding: 4px 10px;
-  background: var(--bg-2);
-  color: var(--text);
-  border: 0;
-  --pxc: var(--c);
-  box-shadow:
-    0 -2px 0 0 var(--pxc),
-    0 2px 0 0 var(--pxc),
-    -2px 0 0 0 var(--pxc),
-    2px 0 0 0 var(--pxc);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s, transform 0.15s;
+  font-size: 0.875rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.rail li:nth-child(odd) .tag-label {
+  bottom: calc(100% + 13px);
+}
+.rail li:nth-child(even) .tag-label {
+  top: calc(100% + 13px);
 }
 .rail .tag-label .n {
   color: var(--c);
+  margin-right: 2px;
 }
+.rail a.on .tag-label,
 .rail a:hover .tag-label,
 .rail a:focus-visible .tag-label {
-  opacity: 1;
-  transform: translate(0, -50%);
+  color: var(--text);
 }
-/* track + overall progress fill */
+.rail a.on .tag-label {
+  font-weight: 700;
+}
+/* track + overall progress fill + the little "train" at the head */
 .rail .track {
   position: absolute;
-  left: 13px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: repeating-linear-gradient(to bottom, var(--line-strong) 0 4px, transparent 4px 8px);
+  z-index: 1;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: repeating-linear-gradient(to right, var(--line-strong) 0 4px, transparent 4px 8px);
 }
 .rail .fill {
   position: absolute;
   left: 0;
   top: 0;
-  width: 2px;
-  height: calc(var(--fill, 0) * 100%);
+  height: 2px;
+  width: calc(var(--fill, 0) * 100%);
   background: var(--accent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
 }
-.rail .count {
+.rail .train {
   position: absolute;
-  left: 50%;
-  top: calc(100% + 22px);
-  transform: translateX(-50%);
-  font-family: var(--font-pixel);
-  font-size: 0.875rem;
-  color: var(--muted);
-  white-space: nowrap;
-  writing-mode: horizontal-tb;
+  z-index: 3;
+  top: 50%;
+  left: calc(6px + (100% - 12px) * var(--fill, 0));
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  background: var(--accent);
+  pointer-events: none;
+  box-shadow:
+    -12px 0 0 -1px color-mix(in srgb, var(--accent) 70%, transparent),
+    -22px 0 0 -2px color-mix(in srgb, var(--accent) 45%, transparent),
+    -31px 0 0 -3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+@media (min-width: 1025px) {
+  :root {
+    --header-h: 72px;
+  }
 }
 .progress-strip {
   display: none;
@@ -1231,20 +1247,26 @@ html.bg-on #bg {
     display: none;
   }
   .progress-strip {
-    display: block;
+    display: flex;
+    gap: 3px;
     position: absolute;
     left: 0;
     right: 0;
     bottom: -1px;
     height: 4px;
-    background: repeating-linear-gradient(90deg, var(--line-strong) 0 calc(12.5% - 3px), transparent calc(12.5% - 3px) 12.5%);
   }
   .progress-strip span {
-    display: block;
-    height: 100%;
-    width: calc(var(--fill, 0) * 100%);
+    flex: 1;
+    background: var(--line-strong);
+    position: relative;
+    overflow: hidden;
+  }
+  /* each grey segment fills with orange as its section is read */
+  .progress-strip i {
+    position: absolute;
+    inset: 0;
     background: var(--accent);
-    -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(12.5% - 3px), transparent calc(12.5% - 3px) 12.5%);
-    mask: repeating-linear-gradient(90deg, #000 0 calc(12.5% - 3px), transparent calc(12.5% - 3px) 12.5%);
+    transform-origin: 0 50%;
+    transform: scaleX(var(--p, 0));
   }
 }
