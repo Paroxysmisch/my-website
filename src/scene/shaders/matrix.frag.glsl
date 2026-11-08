@@ -138,7 +138,7 @@ void main() {
       float wv = uDone * 1.3 - ord / 1024.0;
       float done = smoothstep(0.0, 0.18, wv);
       float fin = done * mix(0.85, 0.4, uCalm);
-      float wavefront = exp(-abs(wv - 0.05) * 12.0) * step(0.0, wv) * step(wv, 0.5) * (1.0 - uCalm);
+      float wavefront = exp(-abs(wv - 0.05) * 12.0) * step(0.0, wv) * step(wv, 0.5) * (1.0 - uCalm) * step(0.001, uDone);
       vec3 doneCol = COL_OK * (0.55 + 0.35 * hash21(t));
       vec3 fine = mix(base + 0.03 * hash21(t * 1.7), heat(0.12 + 0.88 * hf), smoothstep(0.02, 0.2, hf));
       fine = mix(fine, doneCol, max(fin, wavefront));
