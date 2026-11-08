@@ -110,6 +110,18 @@ const links = Object.entries({
     <p id="beat" role="status"></p>
   </div>
 
+  <nav id="pager" class="pager" aria-label="Previous and next section">
+    <a id="pager-prev" href="#hero" rel="prev">
+      <svg viewBox="0 0 8 8" aria-hidden="true"><path d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>
+      <span>Prev</span>
+    </a>
+    <span id="pager-count" class="pager-count" aria-hidden="true">01 / 08</span>
+    <a id="pager-next" href="#about" rel="next">
+      <span>Next</span>
+      <svg viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1h1v1H4zM5 2h1v1H5zM1 3h6v2H1zM5 5h1v1H5zM4 6h1v1H4z"/></svg>
+    </a>
+  </nav>
+
   <main id="main">
     <section id="hero" class="chapter hero" data-chapter="0" aria-labelledby="name">
       <div class="col">

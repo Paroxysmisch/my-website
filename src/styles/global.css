@@ -1278,3 +1278,80 @@ html.bg-on #bg {
     transform: scaleX(var(--p, 0));
   }
 }
+
+/* ═════════════ phone pager: previous / next section ═════════════ */
+.pager {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .pager {
+    position: fixed;
+    z-index: 38;
+    left: 14px;
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .pager::before {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 96px;
+    z-index: -1;
+    background: linear-gradient(transparent, var(--bg) 72%);
+    pointer-events: none;
+  }
+  .pager a {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    margin: 2px;
+    background: var(--bg-2);
+    color: var(--text);
+    text-decoration: none;
+    font-family: var(--font-pixel);
+    font-size: 0.95rem;
+    --pxc: var(--line-strong);
+    box-shadow:
+      0 -2px 0 0 var(--pxc),
+      0 2px 0 0 var(--pxc),
+      -2px 0 0 0 var(--pxc),
+      2px 0 0 0 var(--pxc);
+    transition: opacity 0.2s;
+  }
+  .pager a:active {
+    --pxc: var(--accent);
+    color: var(--accent);
+  }
+  .pager a[aria-disabled="true"] {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .pager svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    shape-rendering: crispEdges;
+  }
+  .pager-count {
+    font-family: var(--font-pixel);
+    font-size: 0.875rem;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    padding: 2px 8px;
+  }
+  .chapter {
+    padding-bottom: max(55svh, 90px);
+  }
+  .chapter[data-chapter="7"] {
+    padding-bottom: 110px;
+  }
+}

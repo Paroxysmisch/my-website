@@ -7,6 +7,9 @@ const dots = [...document.querySelectorAll<HTMLElement>("#rail a")];
 const strip = document.getElementById("progress-strip");
 const segs = strip ? [...strip.querySelectorAll<HTMLElement>("span")] : [];
 const n = secs.length;
+const prev = document.getElementById("pager-prev") as HTMLAnchorElement | null;
+const next = document.getElementById("pager-next") as HTMLAnchorElement | null;
+const pcount = document.getElementById("pager-count");
 let raf = 0;
 
 function update() {
@@ -31,6 +34,19 @@ function update() {
     if (i === active) d.setAttribute("aria-current", "location");
     else d.removeAttribute("aria-current");
   });
+  // phone pager: previous / next section buttons
+  const setPager = (a: HTMLAnchorElement | null, idx: number) => {
+    if (!a) return;
+    const off = idx < 0 || idx >= n;
+    const target = secs[off ? active : idx] as HTMLElement;
+    a.setAttribute("href", `#${target.id}`);
+    a.setAttribute("aria-disabled", String(off));
+    a.tabIndex = off ? -1 : 0;
+  };
+  setPager(prev, active - 1);
+  setPager(next, active + 1);
+  if (pcount)
+    pcount.textContent = `${String(active + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
   // phone strip: segment j fills while section j is being read
   const p = active + frac;
   segs.forEach((sg, j) => sg.style.setProperty("--p", Math.min(1, Math.max(0, p - j)).toFixed(3)));
