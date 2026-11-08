@@ -6,9 +6,12 @@ for (const scheme of ["dark", "light"]) {
   await page.setViewport({ width: 1200, height: 800 });
   await page.goto("http://localhost:4322/", { waitUntil: "load" });
   await page.waitForFunction(() => document.documentElement.classList.contains("scene-on"));
-  const st = () => page.evaluate(() => `resolved=${document.documentElement.dataset.resolved} forced=${document.documentElement.dataset.theme ?? "-"} bg=${getComputedStyle(document.body).backgroundColor || getComputedStyle(document.documentElement).backgroundColor} uLight=${(window as any).__scene.U.uLight.value} stored=${localStorage.getItem("theme")}`);
+  const st = () => page.evaluate(() => `theme=${document.documentElement.dataset.theme} btn=${document.getElementById("theme-btn")!.dataset.mode} uLight=${(window as any).__scene.U.uLight.value}`);
   console.log(`system ${scheme}:`, await st());
-  for (let i = 0; i < 3; i++) { await page.click("#theme-btn"); await new Promise((r) => setTimeout(r, 300)); console.log("  click →", await st()); }
+  await page.click("#theme-btn"); await new Promise((r) => setTimeout(r, 300)); console.log("  click →", await st());
+  // the system flips (e.g. sunset): the page follows, overriding the manual choice
+  await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: scheme === "dark" ? "light" : "dark" }]);
+  await new Promise((r) => setTimeout(r, 400)); console.log("  system flips →", await st());
   await page.close();
 }
 await browser.close();

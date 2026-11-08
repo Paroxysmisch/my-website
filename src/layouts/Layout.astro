@@ -26,11 +26,20 @@ const { title, description, scene = false } = Astro.props;
     <Font cssVariable="--font-mono" />
     <script is:inline>
       document.documentElement.classList.add("js");
-      // apply a forced theme before first paint (no flash); ?theme=light|dark is for screenshots/tests
+      // choose the theme before first paint: the system's light/dark preference wins; without one, daytime (07–19h) = light.
+      // ?theme=light|dark forces one for screenshots/tests.
       try {
+        var auto = function () {
+          try {
+            if (matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+            if (matchMedia("(prefers-color-scheme: light)").matches) return "light";
+          } catch (e) {}
+          var h = new Date().getHours();
+          return h >= 7 && h < 19 ? "light" : "dark";
+        };
         var q = new URLSearchParams(location.search).get("theme");
-        var t = q || localStorage.getItem("theme");
-        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        localStorage.removeItem("theme");
+        document.documentElement.dataset.theme = q === "light" || q === "dark" ? q : auto();
       } catch (e) {}
     </script>
   </head>
@@ -39,47 +48,44 @@ const { title, description, scene = false } = Astro.props;
     <slot />
     {scene && <script>import "../scene/loader";</script>}
     <script>
-      // Theme toggle: auto (follow the system) → light → dark → auto
+      // Theme: light or dark. The page starts with the system preference (time of day as a fallback) and
+      // follows it live; the button flips it until the next automatic change (system switch / sunrise / sunset).
       {
         const root = document.documentElement;
         const btn = document.getElementById("theme-btn");
-        const mq = matchMedia("(prefers-color-scheme: light)");
-        const mode = () => (root.dataset.theme === "light" || root.dataset.theme === "dark" ? root.dataset.theme : "auto");
-        const isLight = () => (mode() === "auto" ? mq.matches : mode() === "light");
-        const announce = () => {
-          root.dataset.resolved = isLight() ? "light" : "dark";
+        const auto = (): "light" | "dark" => {
+          if (matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+          if (matchMedia("(prefers-color-scheme: light)").matches) return "light";
+          const h = new Date().getHours();
+          return h >= 7 && h < 19 ? "light" : "dark";
+        };
+        const current = () => (root.dataset.theme === "light" ? "light" : "dark");
+        const apply = (t: "light" | "dark") => {
+          root.dataset.theme = t;
+          root.dataset.resolved = t;
+          if (btn) {
+            btn.dataset.mode = t;
+            const next = t === "light" ? "dark" : "light";
+            btn.setAttribute("aria-label", `Switch to ${next} theme`);
+            btn.title = `${t} theme (click for ${next})`;
+          }
           dispatchEvent(new Event("themechange"));
         };
-        const paint = () => {
-          if (!btn) return;
-          const m = mode();
-          btn.dataset.mode = m;
-          const next = m === "auto" ? "light" : m === "light" ? "dark" : "auto (system)";
-          btn.setAttribute("aria-label", `Theme: ${m === "auto" ? "automatic (system)" : m}. Switch to ${next}`);
-          btn.title = `Theme: ${m === "auto" ? "auto" : m}`;
-        };
-        btn?.addEventListener("click", () => {
-          const m = mode();
-          const next = m === "auto" ? "light" : m === "light" ? "dark" : "auto";
-          if (next === "auto") {
-            delete root.dataset.theme;
-            try {
-              localStorage.removeItem("theme");
-            } catch {}
-          } else {
-            root.dataset.theme = next;
-            try {
-              localStorage.setItem("theme", next);
-            } catch {}
+        let lastAuto = auto();
+        const follow = () => {
+          const a = auto();
+          if (a !== lastAuto) {
+            lastAuto = a;
+            apply(a);
           }
-          paint();
-          announce();
-        });
-        mq.addEventListener("change", () => {
-          if (mode() === "auto") announce();
-        });
-        paint();
-        announce();
+        };
+        btn?.addEventListener("click", () => apply(current() === "light" ? "dark" : "light"));
+        for (const q of ["(prefers-color-scheme: dark)", "(prefers-color-scheme: light)"]) {
+          matchMedia(q).addEventListener("change", follow);
+        }
+        setInterval(follow, 30_000); // crossing sunrise/sunset while the page is open
+        document.addEventListener("visibilitychange", follow);
+        apply(current());
       }
       // Scroll-driven text motion only starts once the visitor scrolls: the first paint is fully static.
       addEventListener(

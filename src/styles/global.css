@@ -1061,7 +1061,7 @@ html.bg-on #bg {
 }
 
 
-/* theme toggle (auto → light → dark) */
+/* theme toggle (light / dark) */
 .theme-btn {
   position: relative;
   width: 40px;
@@ -1092,7 +1092,6 @@ html.bg-on #bg {
   shape-rendering: crispEdges;
   fill: currentColor;
 }
-.theme-btn[data-mode="auto"] .i-auto,
 .theme-btn[data-mode="light"] .i-light,
 .theme-btn[data-mode="dark"] .i-dark {
   display: block;
