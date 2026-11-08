@@ -426,6 +426,10 @@ main {
   #stage {
     opacity: calc(var(--anim, 1) * var(--ready, 1));
     filter: blur(calc((1 - var(--anim, 1)) * 7px));
+    /* smooths snaps and quick flicks so the animation eases in instead of popping */
+    transition:
+      opacity 0.45s ease-out,
+      filter 0.45s ease-out;
   }
   #info {
     opacity: calc(var(--anim, 1) * var(--ready, 1));

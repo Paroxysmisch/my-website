@@ -138,7 +138,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   function updateReady() {
     if (!phone) return;
     const busy = !!travel || holding;
-    ready += ((busy ? 0 : 1) - ready) * (busy ? 0.35 : 0.07);
+    ready += ((busy ? 0 : 1) - ready) * (busy ? 0.3 : 0.035); // fade out fast, return slowly
     if (Math.abs(ready - (busy ? 0 : 1)) < 0.004) ready = busy ? 0 : 1;
     document.documentElement.style.setProperty("--ready", ready.toFixed(3));
   }
@@ -190,7 +190,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
     const o = { t: S.tau };
     travel = gsap.to(o, {
       t: dw.arrive,
-      duration: Math.min(2.4, 0.6 + 0.8 * dist),
+      duration: phone ? Math.min(1.5, 0.45 + 0.5 * dist) : Math.min(2.4, 0.6 + 0.8 * dist),
       ease: "power2.inOut",
       onUpdate: () => setTau(o.t),
       onComplete: () => {
