@@ -289,6 +289,9 @@ export function createLabels(
   requestAnimationFrame(measure);
   document.fonts?.ready.then(measure);
   const v = new Vector3();
+  const v1 = new Vector3();
+  const v2 = new Vector3();
+  const p0 = new Vector3();
   const FADE = 0.04;
 
   return function update(tau: number, w: number, h: number) {
@@ -302,7 +305,8 @@ export function createLabels(
         if (el.style.opacity !== "0") el.style.opacity = "0";
         continue;
       }
-      v.copy(d.at()).project(camera);
+      p0.copy(d.at());
+      v.copy(p0).project(camera);
       let x = (v.x * 0.5 + 0.5) * w;
       const y = (-v.y * 0.5 + 0.5) * h;
       const lw = widths[i] || 120;
@@ -312,7 +316,18 @@ export function createLabels(
       const vis = v.z < 1 && y > 8 && y < h - 8;
       el.style.opacity = vis ? String(a) : "0";
       const tx = d.align === "r" ? "-100%" : d.align === "l" ? "0" : "-50%";
-      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(${tx}, -50%)`;
+      // lie flat on the diagram: map the label's x/y onto the projected world x/y axes at its anchor
+      // (direction + foreshortening kept, overall size not scaled so text stays a constant 14 px)
+      const eps = p0.distanceTo(camera.position) * 0.03;
+      v1.set(p0.x + eps, p0.y, p0.z).project(camera);
+      v2.set(p0.x, p0.y + eps, p0.z).project(camera);
+      const exx = (v1.x - v.x) * 0.5 * w;
+      const exy = -(v1.y - v.y) * 0.5 * h;
+      const eyx = (v2.x - v.x) * 0.5 * w;
+      const eyy = -(v2.y - v.y) * 0.5 * h;
+      const n = Math.max(Math.hypot(exx, exy), Math.hypot(eyx, eyy)) || 1;
+      const m = `matrix(${(exx / n).toFixed(4)}, ${(exy / n).toFixed(4)}, ${(-eyx / n).toFixed(4)}, ${(-eyy / n).toFixed(4)}, 0, 0)`;
+      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) ${m} translate(${tx}, -50%)`;
     }
   };
 }

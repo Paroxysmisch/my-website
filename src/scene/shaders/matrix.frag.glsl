@@ -115,16 +115,8 @@ void main() {
       float rC = 0.30 + hero * isTgt * (0.06 + 0.16 * elemC);
       float dotm = 1.0 - smoothstep(rC, rC + max(0.10, aa), length(g));
       float h = hero * isTgt * (0.12 + 0.62 * acc) + hero * isTgt * elemC * 0.9;
-      // tiles finished in previous cycles stay lit and fade
-      float prev = 0.0;
-      for (int m = 1; m <= 3; m++) {
-        float cm = cyc - float(m);
-        float pri = rnd8(cm, 1.0), prj = rnd8(cm, 2.0);
-        prev += step(abs(rt - pri), 0.5) * step(abs(ct - prj), 0.5) * (0.5 / float(m));
-      }
       vec3 heroCol = base + 0.03 * v;
       heroCol = mix(heroCol, heat(0.10 + 0.86 * clamp(h, 0.0, 1.0)), smoothstep(0.03, 0.2, h) * dotm);
-      heroCol = mix(heroCol, COL_OK * 0.8, prev * hero * dotm * (1.0 - isTgt));
       heroCol = mix(heroCol, vec3(1.0, 0.95, 0.8), hero * isTgt * elemC * dotm);
       heroCol = mix(heroCol * 0.8, heroCol, 0.55 + 0.45 * dotm);
       // coarse tile boundaries, active one outlined

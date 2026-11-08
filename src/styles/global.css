@@ -164,6 +164,7 @@ html.scene-on .scene-poster {
   position: absolute;
   left: 0;
   top: 0;
+  transform-origin: 0 0;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: 1.3;
