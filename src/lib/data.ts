@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse } from "yaml";
 import {
+  educationSchema,
   experienceSchema,
   newsSchema,
   type Profile,
@@ -24,6 +25,7 @@ function load<T>(file: string, schema: { parse: (v: unknown) => T }, json = fals
 
 export const profile: Profile = load("data/profile.yaml", profileSchema);
 export const research = load("content/research.yaml", researchSchema);
+export const education = load("content/education.yaml", educationSchema);
 export const experience = load("content/experience.yaml", experienceSchema);
 export const news = load("content/news.yaml", newsSchema).sort((a, b) => {
   // dated items newest first, undated ones (awards) after them in file order

@@ -14,7 +14,8 @@ The page is plain, readable HTML first (no JavaScript needed to read anything). 
 - A very faint ASCII-orb background shader (`src/scene/bg.ts`) drifts behind everything and glows around the pointer; it clears out under the 3D scene (screen-space footprint polygons), is skipped for Save-Data and static for reduced motion.
 - Palette follows the GEMM walkthrough: **A** blue, **B** magenta, accumulator **amber**, finished/written back **green**, peer SM **purple** (`src/styles/tokens.css`).
 - Scene playback: scrolling only selects the active chapter. The camera pans there (time-based, never scrubbed) and the chapter's data-movement animation then loops in real time, like the hero (`DWELL` in `src/scene/timeline.ts`: ping-pong for state changes, seamless wrap for the SMEM ring, once for the finale). Jumps of more than ~1.5 chapters fade the stage out, cut the story to the destination chapter and play its own pan on fade-in. A fast flick snaps to the nearest section; slow scrolling stays free.
-- Anime.js-style scroll motion: text eases in and out with CSS scroll-driven animations (`animation-timeline: view()`), with an IntersectionObserver fallback. It only starts after the first scroll, so the first paint is static.
+- Text pops + fades in **and out every time** it enters/leaves the screen (`src/scripts/reveal.ts`, IntersectionObserver; exits remember the side they left through).
+- Navigation is a pixel **section rail** on the left (desktop): one node per section in its stage colour, the track fills with overall progress, hover/focus shows the section name, click glides there. On phones a segmented progress strip sits under the header and the menu lists the sections.
 - Desktop: scene fixed on the right, text on the left. Phone/tablet: the scene fills the viewport with the animation in the upper part; text scrolls up over it but fades out as it crosses mid-screen, so it never covers the animation.
 - The plain-language narration lives in an info button (i) at the corner of the scene (hover or tap) (`src/scene/beats.ts`) says in plain language what is happening at each beat, next to a mono readout whose numbers all come from `src/scene/kernel.ts`.
 
@@ -26,7 +27,7 @@ The page is plain, readable HTML first (no JavaScript needed to read anything). 
 | 2 | About | C is cut into 1,024 tiles (swizzled order); one tile + its A row strip and B column strip, split between the 2 CTAs of a pair; K sliced into 128 blocks |
 | 3 | Research | The B200 die (two dies, NV-HBI, GPCs, L2, GigaThread engine, HBM; laid out like the Blackwell Ultra die shot). CTA pairs are assigned; our tile lands on pair 20 |
 | 4 | Projects | Inside the SM pair, laid out like the Blackwell SM diagram: 4 sub-partitions (warp scheduler, registers, TMEM slice, CUDA cores, Tensor Core), TMA, shared memory, textures |
-| 5 | Publications | k-loop: TMA streams k-blocks from the A/B strips in HBM into the 6-slot SMEM ring; full-barrier per slot; each SM loads half of B |
+| 5 | Education | k-loop: TMA streams k-blocks from the A/B strips in HBM into the 6-slot SMEM ring; full-barrier per slot; each SM loads half of B |
 | 6 | Experience | One thread issues `tcgen05.mma.cta_group::2`; accumulators build up in TMEM (4 × 32 lanes × 512 columns per SM) |
 | 7 | News | Epilogue: 4 warps `tcgen05.ld` their 32 TMEM lanes → registers → FP32→BF16 → SMEM → TMA store to HBM; the second TMEM buffer starts the next tile |
 | 8 | Contact | Every pair works through the remaining tiles; C fills in waves and settles |
@@ -54,10 +55,11 @@ bun run posters    # re-render the chapter posters from the live scene (needs a 
 | What | Where |
 |---|---|
 | Name, title, affiliation, advisor, bio, links, email | `src/data/profile.yaml` |
-| Publications | `src/data/pubs.bib` (custom fields: `pdf`, `code`, `venue_short`, `topics`) |
+| Education | `src/content/education.yaml` (+ `interests` in `profile.yaml`) |
+| Publications (feed Research counts; no own section) | `src/data/pubs.bib` |
 | Research themes | `src/content/research.yaml` (meter = related papers + projects) |
 | Projects | `src/content/projects/*.md` |
-| Experience | `src/content/experience.yaml` |
+| Experience | `src/content/experience.yaml` (education lives in `education.yaml`) |
 | News / talks / awards | `src/content/news.yaml` |
 | Fallback citation stats | `src/data/stats.json` (set `openalexAuthorId` in `profile.yaml` for live OpenAlex stats at build time) |
 | CV | put `cv.pdf` in `public/` |

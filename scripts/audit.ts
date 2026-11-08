@@ -43,7 +43,7 @@ for (const [w, h] of [
     for (const el of document.querySelectorAll<HTMLElement>(
       ".btn,.links-row a,.menu-mobile summary,.menu-mobile nav a",
     )) {
-      const b = el.getBoundingClientRect();
+      const b = { width: el.offsetWidth, height: el.offsetHeight }; // layout size (ignores reveal transforms)
       if (
         b.width &&
         (b.width < 44 || b.height < 44) &&

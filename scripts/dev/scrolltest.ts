@@ -5,7 +5,7 @@ await page.setViewport({ width: +(process.argv[2] ?? 1440), height: +(process.ar
 page.on("pageerror", (e) => console.log("[pageerror]", e.message));
 await page.goto("http://localhost:4322/", { waitUntil: "load" });
 await page.waitForFunction(() => document.documentElement.classList.contains("scene-on"), { timeout: 30000 });
-const ids = ["hero", "about", "research", "projects", "publications", "experience", "news", "contact"];
+const ids = ["hero", "about", "research", "projects", "education", "experience", "news", "contact"];
 const tau = () => page.evaluate(() => ((window as any).__scene.S.tau as number).toFixed(2));
 for (const id of ids) {
   const y = await page.evaluate((i) => Math.round((document.getElementById(i) as HTMLElement).getBoundingClientRect().top + scrollY), id);

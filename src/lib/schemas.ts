@@ -20,6 +20,8 @@ export const profileSchema = z.object({
     linkedin: z.string().optional(),
     cv: z.string().optional(),
   }),
+  /** research interests / topics shown under Education */
+  interests: z.array(z.string()).default([]),
   openalexAuthorId: z.string().optional(),
 });
 
@@ -40,6 +42,17 @@ export const experienceSchema = z.array(
     org: z.string(),
     start: ym,
     end: ym.optional(),
+    description: z.string(),
+  }),
+);
+
+export const educationSchema = z.array(
+  z.object({
+    degree: z.string(),
+    org: z.string(),
+    start: ym,
+    end: ym.optional(),
+    grade: z.string().optional(),
     description: z.string(),
   }),
 );

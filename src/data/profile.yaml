@@ -11,6 +11,13 @@ bioMarkdown: |
   Before the PhD I deployed and managed large Slurm/Kubernetes GPU data-centres at Fluidstack, built high-performance data-processing pipelines at Ab Initio, and did research at Google DeepMind on positional encodings for Transformers.
 email: "yashshah00@outlook.com"
 emailAlt: "ys562@cam.ac.uk"
+interests:
+  - Computer Architecture
+  - Geometric Deep Learning
+  - Reinforcement Learning
+  - NLP
+  - Graphics
+  - Computational Biology
 links:
   github: "https://github.com/Paroxysmisch"
 # scholar / orcid / linkedin / cv: add when you have them (they appear automatically)

@@ -32,7 +32,7 @@ export const chapters: Chapter[] = [
     subtitle: "Specialised units: one loads data, one does the maths, others write results back.",
   },
   {
-    id: "publications",
+    id: "education",
     stage: "The k-loop: TMA → shared memory",
     subtitle:
       "Data is streamed in chunks into a ring of on-chip buffers so loading and computing overlap.",

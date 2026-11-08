@@ -1,22 +1,10 @@
 # lane: Education | Research | Industry | Teaching. start/end: YYYY or YYYY-MM; end omitted = ongoing.
-- lane: Education
-  role: "PhD, Computer Science"
-  org: "University of Cambridge"
-  start: "2026"
-  end: "2030"
-  description: "Part of the Computer Architecture group. Currently working on using agents to optimise GPU kernels."
 - lane: Industry
   role: "Forward Deployed Engineer"
   org: "Fluidstack"
   start: "2025-07"
   end: "2025-12"
   description: "Deployed and managed large, production-scale Slurm/Kubernetes-based GPU data-centres used by leading machine learning laboratories. Also built software for automated deployment, monitoring and benchmarking in data-centre and HPC settings, and investigated model scaling across thousands of GPUs."
-- lane: Education
-  role: "MEng, Computer Science (Distinction)"
-  org: "University of Cambridge"
-  start: "2024"
-  end: "2025"
-  description: "Modules: ML & Physical World, Computer Architecture, Natural Language Syntax & Parsing, Geometric Deep Learning, and Reinforcement Learning."
 - lane: Industry
   role: "Field Consultant / SWE"
   org: "Ab Initio Software"
@@ -29,21 +17,9 @@
   start: "2023-06"
   end: "2023-09"
   description: "Explored how Randomized Positional Encodings improve length generalisation in Transformers. Tested a wide range of positional encoding schemes on Neural Algorithmic Reasoning tasks, natural language, fine-tuning and vision transformer workloads."
-- lane: Education
-  role: "BA, Computer Science (1st Class)"
-  org: "University of Cambridge"
-  start: "2020"
-  end: "2023"
-  description: "First-class honours in Computer Science."
 - lane: Industry
   role: "Software Engineer Intern"
   org: "Speechmatics"
   start: "2022-07"
   end: "2022-09"
   description: "Helped develop a new speech recognition engine aiming for easier development, testing, parallelisation and performance, using C++20 coroutines, concepts, template metaprogramming and threading. Profiled the existing engine (CPU, memory, leaks) and worked on automated profiling."
-- lane: Education
-  role: "Secondary education"
-  org: "Queen Elizabeth's School"
-  start: "2013"
-  end: "2020"
-  description: "A-levels: A*, A*, A*, A*. AS-levels: A, A, A, A, A."
