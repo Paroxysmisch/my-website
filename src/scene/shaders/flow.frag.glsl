@@ -9,8 +9,8 @@ float hash3(vec3 p) {
   return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
 }
 
-// A particle is a little packet of a tensor: a 4x4 patch of "values" whose bits keep flickering, with a
-// few pixels shedding off behind it as it flies. (Tensor-tile colours: A blue, B magenta, accumulator amber, done green.)
+// A particle is a few bits of a tensor: a 4x4 patch of little squares that keep flickering, with a few
+// pixels shedding off behind it as it flies (no frame, just the pixels). (Tensor-tile colours: A blue, B magenta, accumulator amber, done green.)
 void main() {
   vec2 q = vec2(vUv.x, vUv.y * 0.5); // in units of the particle width
   float tick = floor(uFlowT * 7.0 + vSeed * 3.0);
@@ -22,13 +22,8 @@ void main() {
     vec2 f = fract(g);
     float bit = step(0.45, hash3(vec3(c, vSeed + tick * 0.37)));
     float pix = step(0.14, f.x) * step(f.x, 0.86) * step(0.14, f.y) * step(f.y, 0.86);
-    a = pix * (0.30 + 0.70 * bit);
+    a = pix * (0.16 + 0.84 * bit);
     bright = bit;
-    float ring = step(0.40, max(abs(q.x), abs(q.y)));
-    if (ring > 0.5) {
-      a = 0.95;
-      bright = 0.6;
-    }
   } else if (q.x > 0.5 && abs(q.y) <= 0.5) {
     // pixels shedding off the tail
     float colI = floor((q.x - 0.5) / 0.25);

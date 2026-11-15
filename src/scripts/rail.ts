@@ -12,28 +12,58 @@ const next = document.getElementById("pager-next") as HTMLAnchorElement | null;
 const pcount = document.getElementById("pager-count");
 let raf = 0;
 
+const rail = document.getElementById("rail");
+const train = rail?.querySelector<HTMLElement>(".train") ?? null;
+const lis = rail ? [...rail.querySelectorAll<HTMLElement>("li")] : [];
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
 function update() {
   const vh = innerHeight;
   const phone = isPhone();
   const ref = phone ? animBottom() + 0.3 * (vh - animBottom()) : vh * 0.5;
+  const max = document.documentElement.scrollHeight - vh;
+  const atEnd = scrollY >= max - 4;
+  // which section is active (same rule as the 3D scene)
   let active = 0;
   secs.forEach((s, i) => {
     if (s.getBoundingClientRect().top <= ref) active = i;
   });
-  const max = document.documentElement.scrollHeight - vh;
-  const atEnd = scrollY >= max - 4;
   if (atEnd) active = n - 1;
-  const r = (secs[active] as HTMLElement).getBoundingClientRect();
-  let frac = Math.min(1, Math.max(0, (ref - r.top) / Math.max(1, r.height)));
-  if (atEnd) frac = 1;
-  const f = Math.min(1, (active + frac) / (n - 1));
+  // progress p in "stations": exactly i when scrolled to section i's top (the locked position)
+  const tops = secs.map((s) => Math.min(max, Math.round(s.getBoundingClientRect().top + scrollY)));
+  let i = 0;
+  tops.forEach((t, k) => {
+    if (t <= scrollY + 1) i = k;
+  });
+  const span = i < n - 1 ? Math.max(1, (tops[i + 1] as number) - (tops[i] as number)) : 1;
+  let p = i + (i < n - 1 ? Math.min(1, Math.max(0, (scrollY - (tops[i] as number)) / span)) : 0);
+  if (atEnd) p = n - 1;
+  const f = Math.min(1, Math.max(0, p / (n - 1)));
   document.documentElement.style.setProperty("--fill", f.toFixed(4));
-  dots.forEach((d, i) => {
-    d.classList.toggle("on", i === active);
-    d.classList.toggle("done", i < active);
-    if (i === active) d.setAttribute("aria-current", "location");
+  dots.forEach((d, k) => {
+    d.classList.toggle("on", k === active);
+    d.classList.toggle("done", k < active);
+    if (k === active) d.setAttribute("aria-current", "location");
     else d.removeAttribute("aria-current");
   });
+  // railway head: morphs into the station marker when it gets near, and out of it again when it leaves
+  if (rail && train && !phone) {
+    const w = rail.getBoundingClientRect().width;
+    const usable = Math.max(1, w - 12);
+    const x = 6 + usable * f;
+    const k = Math.min(n - 1, Math.max(0, Math.round(p)));
+    const dpx = Math.abs(p - k) * (usable / (n - 1));
+    const m = 1 - smoothstep(0, 26, dpx);
+    const xk = 6 + (usable * k) / (n - 1);
+    const xh = x + (xk - x) * m * 0.55;
+    train.style.setProperty("--tx", `${xh.toFixed(2)}px`);
+    train.style.setProperty("--ts", `${(8 + 8 * m).toFixed(2)}px`);
+    train.style.setProperty("--tc", `${(m * 100).toFixed(1)}%`);
+    train.style.setProperty("--sc", lis[k]?.style.getPropertyValue("--c") || "var(--accent)");
+  }
   // phone pager: previous / next section buttons
   const setPager = (a: HTMLAnchorElement | null, idx: number) => {
     if (!a) return;
@@ -48,11 +78,13 @@ function update() {
   if (pcount)
     pcount.textContent = `${String(active + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
   // phone strip: segment j fills while section j is being read
-  const p = active + frac;
   segs.forEach((sg, j) => {
     sg.style.setProperty("--p", Math.min(1, Math.max(0, p - j)).toFixed(3));
   });
-  strip?.setAttribute("aria-valuenow", String(Math.round((Math.min(n, p) / n) * 100)));
+  strip?.setAttribute(
+    "aria-valuenow",
+    String(Math.round((Math.min(n, p + 0.0001) / (n - 1)) * 100)),
+  );
 }
 const onScroll = () => {
   cancelAnimationFrame(raf);

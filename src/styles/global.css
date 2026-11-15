@@ -1224,18 +1224,19 @@ html.bg-on #bg {
   left: 0;
   top: 0;
   height: 2px;
-  width: calc(var(--fill, 0) * 100%);
+  width: calc(var(--tx, 6px) - 6px);
   background: var(--accent);
 }
 .rail .train {
   position: absolute;
   z-index: 3;
   top: 50%;
-  left: calc(6px + (100% - 12px) * var(--fill, 0));
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  background: var(--accent);
+  left: var(--tx, 6px);
+  width: var(--ts, 8px);
+  height: var(--ts, 8px);
+  transform: translate(-50%, -50%);
+  /* accent head that takes on the station's colour as it merges into the marker */
+  background: color-mix(in srgb, var(--sc, var(--accent)) var(--tc, 0%), var(--accent));
   pointer-events: none;
 }
 @media (min-width: 1025px) {
