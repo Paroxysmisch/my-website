@@ -12,7 +12,8 @@ uniform float uGroup[10];
 varying vec3 vColor;
 varying float vAlpha;
 varying vec2 vUv; // x: distance from the head in particle widths (negative = ahead of it), y: -1..1 across
-varying float vTail; // 0 at the head .. 1 at the end of the tail
+varying float vTail;
+varying float vSeed; // 0 at the head .. 1 at the end of the tail
 
 float slotC(float idx) { return mod(uT - idx + 6.0 * 40.0, 6.0); }
 float rnd8(float n, float salt) { return floor(fract(sin(n * 12.9898 + salt * 78.233) * 43758.5453) * 8.0); }
@@ -118,4 +119,5 @@ void main() {
   vAlpha = a;
   vUv = vec2(along / w, position.y * 3.2);
   vTail = clamp(along / len, 0.0, 1.0);
+  vSeed = aInfo.w * 7.0 + float(gl_InstanceID) * 0.173;
 }

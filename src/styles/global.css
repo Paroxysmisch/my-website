@@ -1237,10 +1237,6 @@ html.bg-on #bg {
   margin: -4px 0 0 -4px;
   background: var(--accent);
   pointer-events: none;
-  box-shadow:
-    -12px 0 0 -1px color-mix(in srgb, var(--accent) 70%, transparent),
-    -22px 0 0 -2px color-mix(in srgb, var(--accent) 45%, transparent),
-    -31px 0 0 -3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 @media (min-width: 1025px) {
   :root {
