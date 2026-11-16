@@ -131,9 +131,14 @@ export function start(canvas: HTMLCanvasElement): StartResult {
   // phone: the animation is faded/blurred under the text; the background's clear-out follows that, and the stage
   // only fades back in once the scene has finished its chapter change (no leftovers of the previous chapter)
   let ready = 1;
+  // the background's clear-out follows the animation only loosely (slow, never below 60%), so it doesn't
+  // flash the full background in and out while the animation fades between sections
+  let bgK = 1;
   const animFactor = () => {
     const a = (window as unknown as { __anim?: number }).__anim ?? 1;
-    return phone ? a * ready : 1;
+    const target = phone ? 0.6 + 0.4 * a * ready : 1;
+    bgK += (target - bgK) * 0.04;
+    return bgK;
   };
   function updateReady() {
     if (!phone) return;

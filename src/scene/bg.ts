@@ -228,14 +228,25 @@ export function startBackground(canvas: HTMLCanvasElement, opts: { animate: bool
   if (!opts.animate) return true;
 
   let prev = 0;
+  let activeUntil = 0;
+  addEventListener(
+    "pointermove",
+    () => {
+      activeUntil = performance.now() + 1500;
+    },
+    { passive: true },
+  );
   const loop = (now: number) => {
     requestAnimationFrame(loop);
-    if (document.hidden || now - prev < 33) return; // ~30 fps is plenty for a slow background
-    prev = now;
-    sx += (mx - sx) * 0.12;
-    sy += (my - sy) * 0.12;
-    amt += (want - amt) * 0.06;
-    draw(now);
+    if (document.hidden) return;
+    // the slow drift is fine at ~30 fps, but while the pointer is moving render every frame so the response is instant
+    if (now < activeUntil || now - prev >= 33) {
+      prev = now;
+      sx = mx; // no easing: the orb sits exactly under the pointer
+      sy = my;
+      amt = want;
+      draw(now);
+    }
   };
   requestAnimationFrame(loop);
   return true;

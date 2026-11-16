@@ -1352,3 +1352,13 @@ html.bg-on #bg {
     padding-bottom: 110px;
   }
 }
+
+/* header name: hidden while the large intro name is on screen */
+.brand {
+  transition: opacity 0.25s, transform 0.25s, visibility 0.25s;
+}
+html.hero-name .brand {
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+}

@@ -93,3 +93,12 @@ const onScroll = () => {
 addEventListener("scroll", onScroll, { passive: true });
 addEventListener("resize", onScroll);
 update();
+
+// The name lives in the header only while the big name in the intro is off-screen (never in both places at once).
+const heroName = document.getElementById("name");
+if (heroName && "IntersectionObserver" in window) {
+  new IntersectionObserver(
+    ([e]) => document.documentElement.classList.toggle("hero-name", !!e?.isIntersecting),
+    { rootMargin: "-70px 0px 0px 0px" },
+  ).observe(heroName);
+}
