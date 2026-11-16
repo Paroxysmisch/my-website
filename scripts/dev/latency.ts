@@ -1,0 +1,12 @@
+import puppeteer from "puppeteer-core";
+const browser = await puppeteer.launch({ executablePath: "/usr/bin/google-chrome", headless: true, args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const page = await browser.newPage();
+await page.setViewport({ width: 1440, height: 900 });
+await page.goto("http://localhost:4322/?theme=dark", { waitUntil: "load" });
+await page.waitForFunction(() => document.documentElement.classList.contains("scene-on"));
+await page.evaluate(() => { (window as any).__log = []; const t0 = performance.now(); (window as any).__t0 = t0; addEventListener("scroll", () => (window as any).__log.push([Math.round(performance.now() - (window as any).__t0), Math.round(scrollY)])); });
+await page.evaluate(() => { (window as any).__t0 = performance.now(); (document.querySelector('#rail a[href="#projects"]') as HTMLElement).click(); });
+await new Promise((r) => setTimeout(r, 1200));
+const log = (await page.evaluate(() => (window as any).__log)) as number[][];
+console.log("first scroll event after click:", log[0]?.[0], "ms; samples", log.slice(0, 6).map((l) => l.join("@")).join(" "), "… end", log.at(-1)?.join("@"));
+await browser.close();

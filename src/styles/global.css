@@ -862,7 +862,7 @@ html.scene-hover {
 /* far jumps between sections: the stage fades while the story cuts to the destination chapter */
 #stage.fade #scene {
   opacity: 0;
-  transition-duration: 0.22s;
+  transition-duration: 0.14s;
 }
 #stage.fade .labels,
 #stage.fade ~ #info {

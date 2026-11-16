@@ -230,7 +230,7 @@ export function start(canvas: HTMLCanvasElement): StartResult {
         holding = false;
         stage.classList.remove("fade");
         startTravel(kk);
-      }, 240);
+      }, 140);
       return;
     }
     startTravel(k);

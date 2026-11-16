@@ -72,7 +72,7 @@ document.addEventListener("click", (e) => {
   const to = Math.min(tops()[i] as number, max);
   history.replaceState(null, "", `#${id}`);
   if (reduce) scrollTo(0, to);
-  else glide(to, i, false);
+  else glide(to, i, true); // starts moving immediately (strong ease-out), no slow-in delay
 });
 
 /**

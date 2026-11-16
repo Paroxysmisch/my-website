@@ -8,7 +8,12 @@ void main() {
   float b = floor(kb);
   float f = fract(kb);
   float gap = uSliceD * 0.26;
-  float inBlock = step(gap, f) * step(f, 1.0 - gap);
+  // analytic anti-aliasing: block coverage from the pixel footprint; once blocks are only ~1-2 px wide the
+  // pattern is replaced by its average so it can't alias / moire
+  float fw = max(fwidth(kb), 1e-4);
+  float edge = min(f - gap, (1.0 - gap) - f);
+  float inBlock = clamp(edge / fw + 0.5, 0.0, 1.0);
+  inBlock = mix(inBlock, 1.0 - 2.0 * gap, smoothstep(0.3, 0.85, fw));
   float loadedUpTo = floor(uT);
   float done = step(b + 1.0, uT);
   float cur = step(b, uT) * (1.0 - done);
